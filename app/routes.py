@@ -20,7 +20,7 @@ def test_connection():
                               password=app.config['DB_PASSWORD'],
                               dbname=app.config['DB_NAME'])
         cur = con.cursor()
-        cur.execute('SELECT * FROM my_table')
+        #cur.execute('SELECT * FROM my_table')
 
     except Exception as e:
         message = f"Ошибка подключения: {e}"
