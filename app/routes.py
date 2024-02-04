@@ -94,8 +94,8 @@ def get_home_admin():
         return message
 
 
-@app.route('/profile/<user_id>', methods=['GET','POST'])
-def get_profile( user_id):
+@app.route('/profile/<user_login>', methods=['GET','POST'])
+def get_profile( user_login):
     try:
         with psycopg.connect(host=app.config['DB_SERVER'], 
                               port=app.config['DB_PORT'],
@@ -105,8 +105,11 @@ def get_profile( user_id):
                               connect_timeout=app.config['DB_TIMEOUT']) as con:
             cur = con.cursor()
             
-            user = cur.execute(f'SELECT * FROM "user" WHERE "user_id" = %s;', [user_id]).fetchone()
-            return render_template('home.html',
+            user = cur.execute(
+                f'SELECT "usr"."name", "usr"."nickname", "usr"."second_name", "usr"."first_name", "usr"."surname", "usr"."mail", "usr"."phone", "usr"."descr" FROM (SELECT * FROM "system_role", "user" WHERE "user"."system_role_id" = "system_role"."system_role_id") "usr" WHERE  "login" = %s;',
+                [user_login]).fetchone()
+                
+            return render_template('profile.html',
                                     system_role_id=2,
                                     system_role = 'Пользователь',
                                     nickname='Knot',
