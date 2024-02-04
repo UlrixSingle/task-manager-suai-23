@@ -13,20 +13,21 @@ def index():
 
 @app.route('/testdb')
 def test_connection():
-    con = None
     try:
-        con = psycopg.connect(host=app.config['DB_SERVER'], 
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
                               user=app.config['DB_USER'], 
                               password=app.config['DB_PASSWORD'],
-                              dbname=app.config['DB_NAME'])
-        cur = con.cursor()
-        #cur.execute('SELECT * FROM my_table')
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            for row in cur.execute('SELECT * FROM "user";'):
+                print(f'{row[0]} - {row[1]} - {row[2]} - {row[3]} - {row[4]} ')
 
     except Exception as e:
         message = f"Ошибка подключения: {e}"
     else:
         message = "Подключение успешно"
     finally:
-        if con:
-            con.close()
         return message
