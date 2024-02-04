@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang='ru'>
+
+<head>
+    <meta charset='utf-8' />
+    <title> Welcome - TaskManager </title>
+    <style>
+        #upperbar {
+            position: fixed;
+            width: 100%;
+            height: 15%;
+            top: 0px;
+            left: 0px;
+            background:rgb(156 158 221);
+        }
+        #lowerbar {
+            position: fixed;
+            width: 100%;
+            height: 15%;
+            bottom: 0px;
+            left: 0px;
+            background:rgb(156 158 221);
+        }
+        
+        ul {
+            width: 200px;
+            list-style-type: none;
+        }​
+
+        li, u {
+            text-decoration: none;
+        }
+
+        a {
+            text-decoration: none;
+            display: block;
+            padding: 8px;
+            color:rgb(28, 0, 139);
+            background-color: rgb(216, 234, 255);
+        }
+        
+        li a {
+            display: block;
+            padding: 8px;
+        }
+        
+        li a:hover:not(.active) {
+            color: rgb(216, 234, 255);
+            background-color: rgb(28, 0, 139);
+        }
+
+        h3 {
+            color: rgb(28, 0, 139);
+        }
+
+        body {
+            font-size: 100%;
+            font-family: verdana, sans-serif;
+            background: rgb(156 158 221);
+            color: rgb(28, 0, 139);
+            background-image: url("background_mountains.jpg");
+            background-repeat: repeat-x;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: auto 70%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="upperbar">
+        <h3> Добро пожаловать! </h3>
+    </div>
+
+    <div>
+        <div style="margin-top: 17.5%;"></div>
+
+        <label style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)"> 
+            Выберите, под какой учетной записью вы хотите войти: 
+        </label>
+
+        <ul>
+            <li><a href="#auth_user">Войти как пользователь</a></li>
+            <li><a href="#auth_admin">Войти как администратор</a></li>
+        </ul>
+
+        <div style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)">
+            <b>Внимание! </br> Доступ к системе разрешен только зарегистрированным пользователям! </b> </br>
+            Чтобы зарегистрироваться в системе, пожалуйста, обратитесь к администратору
+        </div>
+
+        <div style="margin-bottom: 17.5%;"></div>
+    </div>
+
+    <div id="lowerbar"> 
+        <h3> Веб-приложение по управлению проектами</h3>
+        <h3> Студент ГУАП группы 4143 Снурников Я.Д.</h3>
+    </div>
+</body>
+
+</html>
