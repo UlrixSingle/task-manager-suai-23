@@ -80,7 +80,9 @@
         </label>
 
         <ul>
-            <li><a href="#auth_user">Войти как пользователь</a></li>
+            <li><form method="GET" action="{{ url_for('ch_surveys') }}">
+                <button type="submit">Просмотр Результатов</button>
+                </form><a href="#auth_user">Войти как пользователь</a></li>
             <li><a href="#auth_admin">Войти как администратор</a></li>
         </ul>
 
