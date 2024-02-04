@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title> Home - TaskManager </title>
+    <title> Profile - TaskManager </title>
     <style>
         #upperbar {
             position: fixed;
@@ -75,9 +75,9 @@
         <h3> {{system_role}} {{nickname}} </h3>
 
         <ul>
-            <li><a class="active" href="#user_home">Домашняя страница</a></li>
+            <li><a href="#user_home">Домашняя страница</a></li>
             <li><a href="#user_announce">Обьявления</a></li>
-            <li><a href="#user_profile">Профиль</a></li>
+            <li><a class="active" href="#user_profile">Профиль</a></li>
             <li style="float:right"><a href="#user_exit">Выйти из системы</a></li>
         </ul>
     </div>
@@ -86,51 +86,14 @@
         <div style="margin-top: 17.5%;"></div>
 
         <div style="margin: 0; padding: 0; width: 200px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
-            {% if system_role_id == 1 %}
-            <label> Список администраторов системы </label>
-            <table>
-                <thead>
-                    <th>№</th>
-                    <th>Ник</th>
-                </thead>
-                {% for admin_nickname in admin_names %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ admin_nickname[0] }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            </br>
-            <label> Список пользователей системы </label>
-            <table>
-                <thead>
-                    <th>№</th>
-                    <th>Ник</th>
-                </thead>
-                {% for user_nickname in user_names %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ user_nickname[0] }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            </br>
-            {% endif %}
-            
-            </br>
-            <label> Список проектов </label>
-            <table>
-                <thead>
-                    <th>№</th>
-                    <th>Название</th>
-                </thead>
-                {% for project_name in project_names %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ project_name[0] }}</td>
-                </tr>
-                {% endfor %}
-            </table>
+            {{ user[0] }} системы</br>
+            Никнейм: {{ user[1] }}</br>
+            Фамилия: {{ user[2] }}</br>
+            Имя: {{ user[3] }}</br>
+            Отчество: {{ user[4] }}</br>
+            Почта: {{ user[5] }}</br>
+            Телефон: {{ user[6] }}</br>
+            Кратко о себе: </br> {{ user[7] }}</br>
         </div>
 
         <div style="margin-bottom: 17.5%;"></div>
