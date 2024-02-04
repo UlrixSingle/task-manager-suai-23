@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title> User Home - TaskManager </title>
+    <title> Admin Home - TaskManager </title>
     <style>
         #upperbar {
             position: fixed;
@@ -71,8 +71,8 @@
 </head>
 
 <body>
-    <div id="upperbar">
-        <h3> {{user_name}} </h3>
+    <div id="upperbar"> 
+        <h3> {{admin_nickname}} </h3>
 
         <ul>
             <li><a class="active" href="#user_home">Домашняя страница</a></li>
@@ -89,12 +89,12 @@
             <table>
                 <thead>
                     <th>№</th>
-                    <th>Название</th>
+                    <th>Имя</th>
                 </thead>
-                {% for project_name in project_names %}
+                {% for user_nickname in user_names %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ project_name[0] }}</td>
+                    <td>{{ user_nickname[0] }}</td>
                 </tr>
                 {% endfor %}
             </table>
