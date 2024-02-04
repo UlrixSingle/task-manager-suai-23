@@ -11,7 +11,7 @@ def index():
     else:
         return "Unknown"
 
-@app.route('/testdb')
+@app.route('/admin_home')
 def test_connection():
     try:
         with psycopg.connect(host=app.config['DB_SERVER'], 
@@ -22,9 +22,11 @@ def test_connection():
                               connect_timeout=app.config['DB_TIMEOUT']) as con:
             cur = con.cursor()
             
-            for row in cur.execute('SELECT * FROM "user";'):
-                print(f'{row[0]} - {row[1]} - {row[2]} - {row[3]} - {row[4]} ')
-
+            client_names = cur.execute(f'SELECT "nickname" FROM "user";').fetchall()
+            return render_template('templates/admin_home.html', 
+                                    admin_nickname='Penguin',
+                                    user_names=user_names)
+        
     except Exception as e:
         message = f"Ошибка подключения: {e}"
     else:
