@@ -106,13 +106,14 @@ def get_profile( user_login):
             cur = con.cursor()
             
             user = cur.execute(
-                f'SELECT "usr"."name", "usr"."nickname", "usr"."second_name", "usr"."first_name", "usr"."surname", "usr"."mail", "usr"."phone", "usr"."descr" FROM (SELECT * FROM "system_role", "user" WHERE "user"."system_role_id" = "system_role"."system_role_id") "usr" WHERE  "login" = %s;',
+                f'SELECT "usr"."name", "usr"."nickname", "usr"."second_name", "usr"."first_name", "usr"."surname", "usr"."mail", "usr"."phone", "usr"."descr", "usr"."login" FROM (SELECT * FROM "system_role", "user" WHERE "user"."system_role_id" = "system_role"."system_role_id") "usr" WHERE  "login" = %s;',
                 [user_login]).fetchone()
                 
             return render_template('profile.html',
                                     system_role_id=2,
                                     system_role = 'Пользователь',
                                     nickname='Knot',
+                                    login='user2',
                                     user=user)
         
     except Exception as e:

@@ -84,7 +84,7 @@
 
     <div>
         <div style="margin-top: 17.5%;"></div>
-
+        
         <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
             {{ user[0] }} системы</br>
             <b>Никнейм: </b> {{ user[1] }}</br>
@@ -96,10 +96,10 @@
             <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
         </div>
 
-        {% if {{ login }} == {{ user[8] }} %}
-        <input type="submit" value="Редактировать"/>
+        {% if login == user[8] %}
+        </br> <input type="submit" value="Редактировать профиль"/>
         {% endif %}
-
+        
         <div style="margin-bottom: 17.5%;"></div>
     </div>
 
