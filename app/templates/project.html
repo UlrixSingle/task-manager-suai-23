@@ -33,9 +33,15 @@
 
     <div>
         <div style="margin-top: 10%;"></div>
+        
+        <div> 
+            <form id="addTaskForm" method="GET" action="{{ url_for('project_add_task', cur_user_id = cur_user_id, user_id = user[0] }}">
+                <input type="submit" onclick="addaTaskForm.submit();" value="Создать задачу"/> 
+            </form>
+        </div>
 
         <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
-            <b>Проект "{{ project[1] }}" </b> </br> </br>
+            <b>Проект {{ project[1] }} </b> </br> </br>
             <b>Описание: </b> </br> {{ project[2] }}</br>
             {% if role_id == owner_role_id %}
             <input type="submit" value="Редактировать название и описание"/> </br>
@@ -45,19 +51,7 @@
             {% for user in team %}
             <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = user[0]) }}">
             </form>
-            <form id="editUserForm{{loop.index}}" method="GET" action="{{ url_for('project_edit_user', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
-            </form>
-            <form id="removeUserForm{{loop.index}}" method="GET" action="{{ url_for('project_remove_user', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
-            </form>
             {% endfor %}
-            
-            </br>
-            <div> 
-                <form id="addUserForm" method="GET" action="{{ url_for('project_add_user', cur_user_id = cur_user_id, project_id = project[0]) }}">
-                    <input type="submit" onclick="addUserForm.submit();" value="Добавить участника"/> 
-                </form>
-            </div>
-            </br>
             
             <b>Команда проекта: </b> </br>
             <table>
@@ -68,24 +62,16 @@
                     <th>Должность</th>
                 </thead>
                 {% for user in team %}
-                <tr>
-                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ loop.index }}</td>
-                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[1] }}</td>
-                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[2] }}</td>
-                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[3] }}</td>
-                    <td> <input type="submit" onclick="editUserForm{{loop.index}}.submit();" value="Редактировать"/> </td>
-                    <td> <input type="submit" onclick="removeUserForm{{loop.index}}.submit();" value="Удалить участника"/> </td>
+                <tr onclick="userProfileForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>{{ user[3] }}</td>
                 </tr>
-                
                 {% endfor %}
             </table>
         </div>
 
         <div style="margin-bottom: 10%;"></div>
     </div>
-    
-    <!-- 
-        <b>Количество человек: </b> {{ project[2] }}</br>
-        <b>Количество задач: </b> {{ project[2] }}</br> 
-    -->
 {% endblock content %}

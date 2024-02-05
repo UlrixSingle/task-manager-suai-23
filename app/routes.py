@@ -202,7 +202,7 @@ def profile( cur_user_id, user_id):
         message = f"Ошибка подключения: {e}"
         return message
 
-# Доска аздач проекта
+# Доска задач проекта
 @app.route('/<cur_user_id>/project/<project_id>', methods=['GET','POST'])
 def project( cur_user_id, project_id):
     return 'OK'
@@ -227,7 +227,7 @@ def project_descr( cur_user_id, project_id):
             nickname = cur_user[2]
             cur_user_id = cur_user[3]
             
-            project = []
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
             
             cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
                 [project_id])
@@ -248,3 +248,18 @@ def project_descr( cur_user_id, project_id):
     except Exception as e:
         message = f"Ошибка подключения: {e}"
         return message
+    
+# Добавить участника в проект
+@app.route('/<cur_user_id>/project/<project_id>/add_member', methods=['GET','POST'])
+def project_add_user( cur_user_id, project_id):
+    return 'OK'
+    
+# Изменить настройки участника проекта
+@app.route('/<cur_user_id>/project/<project_id>/edit_member/<user_id>', methods=['GET','POST'])
+def project_edit_user( cur_user_id, user_id, project_id):
+    return 'OK'
+
+# Удалить участника из проекта
+@app.route('/<cur_user_id>/project/<project_id>/remove_member/<user_id>', methods=['GET','POST'])
+def project_remove_user( cur_user_id, user_id, project_id):
+    return 'OK'
