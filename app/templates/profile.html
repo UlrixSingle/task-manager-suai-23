@@ -89,7 +89,7 @@
 
             <form id="profileForm" method="GET" action="{{ url_for('profile') }}">
                 <li onclick="profileForm.submit();">
-                    {% if {{ login }} == {{ user[8] }} %}
+                    {% if login == user[8] %}
                     <a class="active">Профиль</a>
                     {% else %}
                     <a>Профиль</a>
@@ -119,7 +119,7 @@
             <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
         </div>
 
-        {% if {{ login }} == {{ user[8] }} %}
+        {% if login == user[8] %}
         <input type="submit" value="Редактировать"/>
         {% endif %}
 
