@@ -73,17 +73,19 @@
     </div>
 
     <div>
-        <div style="margin-top: 17.5%;"></div>
+        <div style="margin-top: 10%;"></div>
 
         <label style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)"> 
             Выберите, под какой учетной записью вы хотите войти: 
         </label>
 
         <ul>
-            <li><form method="GET" action="{{ url_for('ch_surveys') }}">
-                <button type="submit">Просмотр Результатов</button>
-                </form><a href="#auth_user">Войти как пользователь</a></li>
-            <li><a href="#auth_admin">Войти как администратор</a></li>
+            <form id="userForm" method="GET" action="{{ url_for('enter_user') }}">
+                <li onclick="userForm.submit();"><a>Войти как пользователь</a></li>
+            </form>
+            <form id="adminForm" method="GET" action="{{ url_for('enter_admin') }}">
+                <li onclick="adminForm.submit();"><a>Войти как администратор</a></li>
+            </form>
         </ul>
 
         <div style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)">
@@ -91,7 +93,7 @@
             Чтобы зарегистрироваться в системе, пожалуйста, обратитесь к администратору
         </div>
 
-        <div style="margin-bottom: 17.5%;"></div>
+        <div style="margin-bottom: 10%;"></div>
     </div>
 
     <div id="lowerbar"> 
