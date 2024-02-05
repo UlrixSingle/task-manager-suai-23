@@ -3,6 +3,7 @@ from flask import render_template
 from app import app
 import psycopg
 
+# Корневой тест
 @app.route('/', methods=['GET','POST'])
 def index():
     if request.method == 'GET':
@@ -41,8 +42,80 @@ def get_admin_home():
         message = f"Ошибка подключения: {e}"
         return message
 '''
+
+# Ошибка
+@app.route('/err', methods=['GET'])
+def err():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+        return render_template('err.html')
     
-# Главная страница администратора
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+
+# Приветствующая страница
+@app.route('/welcome', methods=['GET'])
+def welcome():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+        return render_template('welcome.html')
+    
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Вход под пользователем
+@app.route('/enter_user', methods=['GET','POST'])
+def enter_user():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+        return render_template('enter_user.html')
+    
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Вход под администратором
+@app.route('/enter_admin', methods=['GET','POST'])
+def enter_admin():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+        return render_template('enter_admin.html')
+    
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Главная страница
 @app.route('/<cur_user_id>/home', methods=['GET','POST'])
 def home( cur_user_id):
     try:
