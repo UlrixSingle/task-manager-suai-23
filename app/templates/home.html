@@ -75,15 +75,34 @@
         <h3> {{system_role}} {{nickname}} </h3>
 
         <ul>
-            <li><a class="active" href="#user_home">Домашняя страница</a></li>
-            <li><a href="#user_announce">Обьявления</a></li>
-            <li><a href="#user_profile">Профиль</a></li>
-            <li style="float:right"><a href="#user_exit">Выйти из системы</a></li>
+            <form id="homeForm" method="GET" action="{{ url_for('home') }}">
+                <li onclick="homeForm.submit();">
+                    <a class="active">Домашняя страница</a>
+                </li>
+            </form>
+
+            <form id="announceForm" method="GET" action="{{ url_for('announce') }}">
+                <li onclick="announceForm.submit();">
+                    <a>Обьявления</a>
+                </li>
+            </form>
+
+            <form id="profileForm" method="GET" action="{{ url_for('profile') }}">
+                <li onclick="profileForm.submit();">
+                    <a>Профиль</a>
+                </li>
+            </form>
+
+            <form id="exitForm" method="GET" action="{{ url_for('exit') }}">
+                <li onclick="exitForm.submit();" style="float:right">
+                    <a>Выйти из системы</a>
+                </li>
+            </form>
         </ul>
     </div>
 
     <div>
-        <div style="margin-top: 17.5%;"></div>
+        <div style="margin-top: 10%;"></div>
 
         <div style="margin: 0; padding: 0; width: 200px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
             {% if system_role_id == 1 %}
@@ -96,7 +115,13 @@
                 {% for admin_nickname in admin_names %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ admin_nickname[0] }}</td>
+                    <td>
+                        <form id="adminProfileForm" method="GET" action="{{ url_for('admin[0]') }}">
+                            <a onclick="adminProfileForm.submit();">
+                                {{ admin[1] }}
+                            </a>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
@@ -109,10 +134,16 @@
                     <th>№</th>
                     <th>Ник</th>
                 </thead>
-                {% for user_nickname in user_names %}
+                {% for user in users %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ user_nickname[0] }}</td>
+                    <td>
+                        <form id="userProfileForm" method="GET" action="{{ url_for('user[0]') }}">
+                            <a onclick="userProfileForm.submit();">
+                                {{ user[1] }}
+                            </a>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
@@ -126,17 +157,23 @@
                     <th>№</th>
                     <th>Название</th>
                 </thead>
-                {% for project_name in project_names %}
+                {% for project in projects %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ project_name[0] }}</td>
+                    <td>
+                        <form id="projectForm" method="GET" action="{{ url_for('project[0]') }}">
+                            <a onclick="userProfileForm.submit();">
+                                {{ project[1] }}
+                            </a>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
             </br>
         </div>
 
-        <div style="margin-bottom: 17.5%;"></div>
+        <div style="margin-bottom: 10%;"></div>
     </div>
 
     <div id="lowerbar"> 

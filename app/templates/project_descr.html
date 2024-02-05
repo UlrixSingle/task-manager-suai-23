@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title> Profile - TaskManager </title>
+    <title> TaskManager </title>
     <style>
         #upperbar {
             position: fixed;
@@ -89,11 +89,7 @@
 
             <form id="profileForm" method="GET" action="{{ url_for('profile') }}">
                 <li onclick="profileForm.submit();">
-                    {% if {{ login }} == {{ user[8] }} %}
-                    <a class="active">Профиль</a>
-                    {% else %}
                     <a>Профиль</a>
-                    {% endif %}
                 </li>
             </form>
 
@@ -109,19 +105,34 @@
         <div style="margin-top: 10%;"></div>
 
         <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
-            {{ user[0] }} системы</br>
-            <b>Никнейм: </b> {{ user[1] }}</br>
-            <b>Фамилия: </b> {{ user[2] }}</br>
-            <b>Имя: </b> {{ user[3] }}</br>
-            <b>Отчество: </b> {{ user[4] }}</br>
-            <b>Почта: </b> {{ user[5] }}</br>
-            <b>Телефон: </b> {{ user[6] }}</br>
-            <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
+            <b>Проект {{ project_name }} </b> </br> </br>
+            <b>Описание: </b> </br> {{ project_descr }}</br>
+            {% if {{ role_id }} == {{ owner_role_id }} %}
+            <input type="submit" value="Редактировать название и описание"/> </br>
+            {% endif %}
+            </br>
+            <b>Команда проекта: </b> </br>
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Ник</th>
+                    <th>Роль</th>
+                    <th>Должность</th>
+                </thead>
+                {% for user in users %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <form id="userProfileForm" method="GET" action="{{ url_for('user_profile') }}">
+                            <a onclick="userProfileForm.submit();">{{ user[0] }}</a>
+                        </form>
+                    </td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
-
-        {% if {{ login }} == {{ user[8] }} %}
-        <input type="submit" value="Редактировать"/>
-        {% endif %}
 
         <div style="margin-bottom: 10%;"></div>
     </div>

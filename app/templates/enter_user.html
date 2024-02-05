@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title> Auth Admin - TaskManager </title>
+    <title> TaskManager </title>
     <style>
         #upperbar {
             position: fixed;
@@ -20,6 +20,31 @@
             bottom: 0px;
             left: 0px;
             background:rgb(156 158 221);
+        }
+        
+        ul {
+            width: 200px;
+            list-style-type: none;
+        }​
+
+        li, a, u {
+            text-decoration: none;
+        }
+
+        a {
+            display: block;
+            padding: 8px;
+            background-color: rgb(209, 209, 209);
+        }
+        
+        li a {
+            display: block;
+            padding: 8px;
+        }
+        
+        li a:hover:not(.active) {
+            background-color: #0b1c8c;
+            color: rgb(156 158 221);
         }
 
         h3 {
@@ -42,11 +67,11 @@
 
 <body>
     <div id="upperbar">
-        <h3> Авторизация адмнинистратора </h3>
+        <h3> Вход в учетную запись пользователя </h3>
     </div>
 
     <div>
-        <div style="margin-top: 17.5%;"></div>
+        <div style="margin-top: 10%;"></div>
  
         <label style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)"> 
             Введитие логин и пароль для входа в вашую учетную запись 
@@ -66,7 +91,7 @@
             <div> <input type="submit" value="Вернуться на главную"/> </div>
         </div>
 
-        <div style="margin-bottom: 17.5%;"></div>
+        <div style="margin-bottom: 10%;"></div>
     </div>
 
     <div id="lowerbar"> 
