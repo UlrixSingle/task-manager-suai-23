@@ -202,7 +202,49 @@ def profile( cur_user_id, user_id):
         message = f"Ошибка подключения: {e}"
         return message
 
+# Доска аздач проекта
 @app.route('/<cur_user_id>/project/<project_id>', methods=['GET','POST'])
 def project( cur_user_id, project_id):
     return 'OK'
 
+# Описание проекта
+@app.route('/<cur_user_id>/project/<project_id>/descr', methods=['GET','POST'])
+def project_descr( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            project = []
+            
+            cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+                [project_id])
+            cur.execute( f'select "user"."user_id", "nickname", "role_name", "job" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+            prteam = cur.fetchall()
+            cur.execute( f'drop table "prteam";')
+            
+            print( project)
+            
+            return render_template('project_descr.html',
+                                    system_role_id=system_role_id,
+                                    system_role = system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project,
+                                    team=prteam)
+
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
