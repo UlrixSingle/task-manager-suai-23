@@ -107,7 +107,7 @@
         <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
             <b>Проект {{ project_name }} </b> </br> </br>
             <b>Описание: </b> </br> {{ project_descr }}</br>
-            {% if {{ role_id }} == {{ owner_role_id }} %}
+            {% if role_id == owner_role_id %}
             <input type="submit" value="Редактировать название и описание"/> </br>
             {% endif %}
             </br>
