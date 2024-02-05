@@ -19,11 +19,7 @@
 
             <form id="profileForm" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = cur_user_id) }}">
                 <li onclick="profileForm.submit();">
-<<<<<<< HEAD
                     {% if cur_user_id == user[8] %}
-=======
-                    {% if login == user[8] %}
->>>>>>> 66cbdc8d7144c2a4de982331603b3280b615b5b7
                     <a class="active">Профиль</a>
                     {% else %}
                     <a>Профиль</a>
@@ -53,11 +49,7 @@
             <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
         </div>
 
-<<<<<<< HEAD
         {% if cur_user_id  == user[8] %}
-=======
-        {% if login == user[8] %}
->>>>>>> 66cbdc8d7144c2a4de982331603b3280b615b5b7
         <input type="submit" value="Редактировать"/>
         {% endif %}
 
