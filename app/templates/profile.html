@@ -1,40 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div id="upperbar"> 
-        <h3> {{system_role}} {{nickname}} </h3>
-
-        <ul>
-            <form id="homeForm" method="GET" action="{{ url_for('home', cur_user_id = cur_user_id) }}">
-                <li onclick="homeForm.submit();">
-                    <a>Домашняя страница</a>
-                </li>
-            </form>
-
-            <form id="announceForm" method="GET" action="{{ url_for('announce', cur_user_id = cur_user_id) }}">
-                <li onclick="announceForm.submit();">
-                    <a>Обьявления</a>
-                </li>
-            </form>
-
-            <form id="profileForm" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = cur_user_id) }}">
-                <li onclick="profileForm.submit();">
-                    {% if cur_user_id == user[8] %}
-                    <a class="active">Профиль</a>
-                    {% else %}
-                    <a>Профиль</a>
-                    {% endif %}
-                </li>
-            </form>
-
-            <form id="exitForm" method="GET" action="{{ url_for('exit', cur_user_id = cur_user_id) }}">
-                <li onclick="exitForm.submit();" style="float:right">
-                    <a>Выйти из системы</a>
-                </li>
-            </form>
-        </ul>
-    </div>
-
     <div>
         <div style="margin-top: 10%;"></div>
 
@@ -49,7 +15,7 @@
             <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
         </div>
 
-        {% if cur_user_id  == user[8] %}
+        {% if access %}
         <input type="submit" value="Редактировать"/>
         {% endif %}
 

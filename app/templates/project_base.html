@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <div>
+            <div style="margin-top: 10%;"></div>
+
+            <label style = "padding: 15px; background-color: rgb(243 217 194)"> <b>Проект "{{ project[1] }}" </b> </label> </br> </br>
+            <ul>
+                <form id="projectForm" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
+                    <li onclick="projectForm.submit();">
+                        {% if project_page == 1 %}
+                            <a class="active">Доска задач</a>
+                        {% else %}
+                            <a>Доска задач</a>
+                        {% endif %}
+                    </li>
+                </form>
+
+                <form id="analiseForm" method="GET" action="{{ url_for('project_analise', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                    <li onclick="analiseForm.submit();">
+                        {% if project_page == 2 %}
+                            <a class="active">Аналитика</a>
+                        {% else %}
+                            <a>Аналитика</a>
+                        {% endif %}
+                    </li>
+                </form>
+
+                <form id="descrForm" method="GET" action="{{ url_for('project_descr', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                    <li onclick="descrForm.submit();">                    
+                        {% if project_page == 3 %}
+                            <a class="active">О проекте</a>
+                        {% else %}
+                            <a>Описание</a>
+                        {% endif %}
+                    </li>
+                </form>
+            </ul>
+
+            <div style="margin-bottom: 20px;"></div>
+        </div>
+        
+        {% block innercontent %}
+        {% endblock innercontent %}
+{% endblock content %}

@@ -1,43 +1,11 @@
-{% extends "base.html" %}
+{% extends "project_base.html" %}
 
-{% block content %}
-    <div id="upperbar"> 
-        <h3> {{system_role}} {{nickname}} </h3>
-
-        <ul>
-            <form id="homeForm" method="GET" action="{{ url_for('home', cur_user_id = cur_user_id) }}">
-                <li onclick="homeForm.submit();">
-                    <a>Домашняя страница</a>
-                </li>
-            </form>
-
-            <form id="announceForm" method="GET" action="{{ url_for('announce', cur_user_id = cur_user_id) }}">
-                <li onclick="announceForm.submit();">
-                    <a>Обьявления</a>
-                </li>
-            </form>
-
-            <form id="profileForm" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = cur_user_id) }}">
-                <li onclick="profileForm.submit();">
-                    <a>Профиль</a>
-                </li>
-            </form>
-
-            <form id="exitForm" method="GET" action="{{ url_for('exit', cur_user_id = cur_user_id) }}">
-                <li onclick="exitForm.submit();" style="float:right">
-                    <a>Выйти из системы</a>
-                </li>
-            </form>
-        </ul>
-    </div>
-
-    <div>
-        <div style="margin-top: 10%;"></div>
-
+{% block innercontent %}
         <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
-            <b>Проект "{{ project[1] }}" </b> </br> </br>
             <b>Описание: </b> </br> {{ project[2] }}</br>
-            {% if role_id == owner_role_id %}
+            
+            {% if access %}
+            </br>
             <input type="submit" value="Редактировать название и описание"/> </br>
             {% endif %}
             </br>
@@ -45,19 +13,29 @@
             {% for user in team %}
             <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = user[0]) }}">
             </form>
-            <form id="editUserForm{{loop.index}}" method="GET" action="{{ url_for('project_edit_user', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
+            {% if access %}
+            <form id="editUserForm{{loop.index}}" method="GET" action="{{ url_for('project_user_edit', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
             </form>
-            <form id="removeUserForm{{loop.index}}" method="GET" action="{{ url_for('project_remove_user', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
+            <form id="removeUserForm{{loop.index}}" method="GET" action="{{ url_for('project_user_remove', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
             </form>
+            {% endif %}
             {% endfor %}
             
+            {% if participent %}
+            <form id="exitForm" method="GET" action="{{ url_for('project_exit', cur_user_id = cur_user_id, project_id = project[0]) }}">
+            </form>
+            {% endif %}
+            
+            
             </br>
+            {% if access %}
             <div> 
-                <form id="addUserForm" method="GET" action="{{ url_for('project_add_user', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                <form id="addUserForm" method="GET" action="{{ url_for('project_user_add', cur_user_id = cur_user_id, project_id = project[0]) }}">
                     <input type="submit" onclick="addUserForm.submit();" value="Добавить участника"/> 
                 </form>
             </div>
             </br>
+            {% endif %}
             
             <b>Команда проекта: </b> </br>
             <table>
@@ -73,19 +51,23 @@
                     <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[1] }}</td>
                     <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[2] }}</td>
                     <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[3] }}</td>
+                    {% if access %}
                     <td> <input type="submit" onclick="editUserForm{{loop.index}}.submit();" value="Редактировать"/> </td>
-                    <td> <input type="submit" onclick="removeUserForm{{loop.index}}.submit();" value="Удалить участника"/> </td>
+                        {% if user[0] != cur_user_id %}
+                        <td> <input type="submit" onclick="removeUserForm{{loop.index}}.submit();" value="Удалить участника"/> </td>
+                        {% endif %}
+                    {% endif %}
+                    {% if participent and user[0] == cur_user_id %}
+                    <td> <input type="submit" onclick="exitForm.submit();" value="Выйти из проекта"/> </td>
+                    {% endif %}
+                    
                 </tr>
                 
                 {% endfor %}
             </table>
         </div>
-
-        <div style="margin-bottom: 10%;"></div>
-    </div>
-    
-    <!-- 
-        <b>Количество человек: </b> {{ project[2] }}</br>
-        <b>Количество задач: </b> {{ project[2] }}</br> 
-    -->
-{% endblock content %}
+        <!-- 
+            <b>Количество человек: </b> {{ project[2] }}</br>
+            <b>Количество задач: </b> {{ project[2] }}</br> 
+        -->
+{% endblock innercontent %}

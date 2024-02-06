@@ -11,6 +11,7 @@
             height: 15%;
             top: 0px;
             left: 0px;
+            z-index: 2;
             background:rgb(156 158 221);
         }
         #lowerbar {
@@ -19,7 +20,33 @@
             height: 15%;
             bottom: 0px;
             left: 0px;
+            z-index: 2;
             background:rgb(156 158 221);
+        }
+        
+        table.taskTable {
+            width: 90%;
+        }
+        
+        table.taskTable td {
+            width: 18%;
+            position: relative;
+        }
+        
+        table.taskTable .content {
+            aspect-ratio: 1 / 1 ;
+            background: gold;
+            padding: 3px;
+        }
+        
+        table.taskTable .blank {
+            aspect-ratio: 1 / 1 ;
+            padding: 3px;
+        }
+
+        table.taskTable th {
+            background-color: green;
+            color: white;
         }
 
         h3 {
@@ -61,7 +88,7 @@
             font-family: verdana, sans-serif;
             background: rgb(255 255 255);
             color: rgb(28, 0, 139);
-            background-image: url("background_mountains.jpg");
+            background-image: url({{ url_for('static', filename='background.jpg') }});
             background-repeat: repeat-x;
             background-position: center center;
             background-attachment: fixed;
@@ -71,8 +98,62 @@
 </head>
 
 <body>
-    {% block content %}
-    {% endblock content %}
+    <div id="upperbar"> 
+        <h3>  {{ page_header }}  </h3>
+
+        {% if home_view %}
+        <ul>
+            <form id="homeForm" method="GET" action="{{ url_for('home', cur_user_id = cur_user_id) }}">
+                <li onclick="homeForm.submit();">
+                    {% if home_page == 1 %}
+                        <a class="active">Домашняя страница</a>
+                    {% else %}
+                        <a>Домашняя страница</a>
+                    {% endif %}
+                </li>
+            </form>
+
+            <form id="announceForm" method="GET" action="{{ url_for('announce', cur_user_id = cur_user_id) }}">
+                <li onclick="announceForm.submit();">
+                    {% if home_page == 2 %}
+                        <a class="active">Обьявления</a>
+                    {% else %}
+                        <a>Обьявления</a>
+                    {% endif %}
+                </li>
+            </form>
+
+            <form id="profileForm" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = cur_user_id) }}">
+                <li onclick="profileForm.submit();">                    
+                    {% if home_page == 3 %}
+                        <a class="active">Профиль</a>
+                    {% else %}
+                        <a>Профиль</a>
+                    {% endif %}
+                </li>
+            </form>
+
+            <form id="exitForm" method="GET" action="{{ url_for('exit', cur_user_id = cur_user_id) }}">
+                <li onclick="exitForm.submit();" style="float:right">
+                    {% if home_page == 4 %}
+                        <a class="active">Выйти из системы</a>
+                    {% else %}
+                        <a>Выйти из системы</a>
+                    {% endif %}
+                </li>
+            </form>
+        </ul>
+        {% endif %}
+    </div>
+
+    <div>
+        <div style="margin-top: 10%;"></div>
+        
+        {% block content %}
+        {% endblock content %}
+        
+        <div style="margin-bottom: 15%;"></div>
+    </div>
 
     <div id="lowerbar"> 
         <div id="rectangle"></div>
