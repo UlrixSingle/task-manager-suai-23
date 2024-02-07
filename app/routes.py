@@ -1,4 +1,6 @@
-from app.forms import RegistrationForm, TaskAddForm, LoginForm
+from app.forms import RegistrationForm, LoginForm
+from app.forms import TaskAddForm
+from app.forms import CommentForm
 from flask import request
 from flask import render_template, redirect, flash, url_for
 from app import app
@@ -8,6 +10,7 @@ from app import login_manager
 from flask_login import UserMixin
 from flask_login import login_user, current_user
 from flask_login import logout_user
+from datetime import date
 
 # Корневой тест
 @app.route('/', methods=['GET','POST'])
@@ -221,7 +224,7 @@ def logout():
 # Главная страница
 @app.route('/<int:cur_user_id>/home', methods=['GET','POST'])
 def home( cur_user_id):
-    try:
+    #try:
         with psycopg.connect(host=app.config['DB_SERVER'], 
                               port=app.config['DB_PORT'],
                               user=app.config['DB_USER'], 
@@ -231,16 +234,13 @@ def home( cur_user_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('home', cur_user_id=current_user.id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('home', cur_user_id=current_user.id))
             
             page_header=""
             
-            home_view=0
-            if current_user.is_authenticated:
-                home_view=1
-                
+            home_view=1   
             home_page=1
             system_role_admin_id = 1
             system_role_user_id = 2
@@ -281,9 +281,9 @@ def home( cur_user_id):
                                     projects=projects,
                                     system_role_admin_id=system_role_admin_id)
         
-    except Exception as e:
-        message = f"Ошибка подключения: {e}"
-        return message
+    #except Exception as e:
+    #    message = f"Ошибка подключения: {e}"
+    #    return message
     
 @app.route('/<int:cur_user_id>/announce', methods=['GET','POST'])
 def announce( cur_user_id):
@@ -305,9 +305,9 @@ def profile( cur_user_id, user_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('profile', cur_user_id=current_user.id, user_id=user_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('profile', cur_user_id=current_user.id, user_id=user_id))
             
             page_header=""
             
@@ -363,9 +363,9 @@ def project( cur_user_id, project_id, sort_type, sort_way):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project', cur_user_id=current_user.id, project_id=project_id, sort_type=sort_type, sort_way=sort_way))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project', cur_user_id=current_user.id, project_id=project_id, sort_type=sort_type, sort_way=sort_way))
             
             page_header=""
             
@@ -448,9 +448,9 @@ def project_analise( cur_user_id, project_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project_analise', cur_user_id=current_user.id, project_id=project_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_analise', cur_user_id=current_user.id, project_id=project_id))
             
             page_header=""
             
@@ -501,9 +501,9 @@ def project_descr( cur_user_id, project_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project_descr', cur_user_id=current_user.id, project_id=project_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_descr', cur_user_id=current_user.id, project_id=project_id))
             
             page_header= ""
             
@@ -573,10 +573,14 @@ def project_exit( cur_user_id, project_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project_exit', cur_user_id=current_user.id, project_id=project_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_exit', cur_user_id=current_user.id, project_id=project_id))
             
+            cur.execute( f'delete from "team" where "user_id" = %s and "project_id" = %s', [cur_user_id, project_id]);
+            return redirect(url_for('home', cur_user_id = cur_user_id) )
+            
+            '''
             page_header=""
             
             home_view=1
@@ -601,6 +605,7 @@ def project_exit( cur_user_id, project_id):
                                     nickname=nickname,
                                     cur_user_id=cur_user_id,
                                     project=project)
+            '''
         
     except Exception as e:
         message = f"Ошибка подключения: {e}"
@@ -619,9 +624,9 @@ def project_user_add( cur_user_id, project_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project_user_add', cur_user_id=current_user.id, project_id=project_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_user_add', cur_user_id=current_user.id))
             
             page_header=""
             
@@ -639,7 +644,7 @@ def project_user_add( cur_user_id, project_id):
             nickname = cur_user[2]
             cur_user_id = cur_user[3]
             
-            return render_template('project_exit.html',
+            return render_template('project_user_add.html',
                                     page_header=page_header,
                                     home_view=home_view,
                                     home_page=home_page,
@@ -665,9 +670,9 @@ def project_user_edit( cur_user_id, user_id, project_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project_user_edit', cur_user_id=current_user.id, user_id=user_id, project_id=project_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_user_edit', cur_user_id=current_user.id, user_id=user_id, project_id=project_id))
             
             page_header=""
             
@@ -685,7 +690,7 @@ def project_user_edit( cur_user_id, user_id, project_id):
             nickname = cur_user[2]
             cur_user_id = cur_user[3]
             
-            return render_template('project_exit.html',
+            return render_template('project_user_edit.html',
                                     page_header=page_header,
                                     home_view=home_view,
                                     home_page=home_page,
@@ -711,10 +716,14 @@ def project_user_remove( cur_user_id, user_id, project_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('project_user_remove', cur_user_id=current_user.id, user_id=user_id, project_id=project_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_user_remove', cur_user_id=current_user.id, user_id=user_id, project_id=project_id))
             
+            cur.execute( f'delete from "team" where "user_id" = %s and "project_id" = %s', [user_id, project_id]);
+            return redirect(url_for('project_descr', cur_user_id = cur_user_id, project_id = project_id) )
+            
+            '''
             page_header=""
             
             home_view=1
@@ -739,7 +748,8 @@ def project_user_remove( cur_user_id, user_id, project_id):
                                     nickname=nickname,
                                     cur_user_id=cur_user_id,
                                     project=project)
-        
+            '''
+            
     except Exception as e:
         message = f"Ошибка подключения: {e}"
         return message
@@ -757,9 +767,9 @@ def task( cur_user_id, project_id, task_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('task', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('task', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
             
             page_header= ""
             
@@ -825,9 +835,9 @@ def newtask( cur_user_id, project_id):
         cur = con.cursor()
         
         if not current_user.is_authenticated:
-            if not current_user.id == cur_user_id:
-                return redirect(url_for('newtask', cur_user_id=current_user.id, project_id=project_id))
             return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('newtask', cur_user_id=current_user.id, project_id=project_id))
         
         page_header= ""
         
@@ -891,7 +901,7 @@ def newtask( cur_user_id, project_id):
                                 access = pr_access_granted,
                                 form=task_form)
 
-# Редактировать комментарий
+# Редактировать задачу
 @app.route('/<int:cur_user_id>/project/<int:project_id>/task/<int:task_id>/task_edit', methods=['GET','POST'])
 def task_edit( cur_user_id, project_id, task_id):
     try:
@@ -904,9 +914,9 @@ def task_edit( cur_user_id, project_id, task_id):
             cur = con.cursor()
             
             if not current_user.is_authenticated:
-                if not current_user.id == cur_user_id:
-                    return redirect(url_for('task_edit', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
                 return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('task_edit', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
             
             page_header=""
             
@@ -944,7 +954,7 @@ def task_edit( cur_user_id, project_id, task_id):
         message = f"Ошибка подключения: {e}"
         return message    
     
-# Удалить комментарий
+# Удалить задачу
 @app.route('/<int:cur_user_id>/project/<int:project_id>/task/<int:task_id>/task_remove', methods=['GET','POST'])
 def task_remove( cur_user_id, project_id, task_id):
     try:
@@ -955,6 +965,11 @@ def task_remove( cur_user_id, project_id, task_id):
                               dbname=app.config['DB_NAME'],
                               connect_timeout=app.config['DB_TIMEOUT']) as con:
             cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('task_remove', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
             
             '''
             page_header=""
@@ -985,6 +1000,210 @@ def task_remove( cur_user_id, project_id, task_id):
     except Exception as e:
         message = f"Ошибка подключения: {e}"
         return message    
+
+# Добавить комментарий
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<task_id>/newcomment', methods=['GET','POST'])
+def newcomment( cur_user_id, project_id, task_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('newcomment', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=0
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        comment_form = CommentForm()
+        
+        role_id = 0
+        participent=0
+        if not (pruser is None):
+            role_id = pruser[0]
+            participent=1
+        
+        comment_access = 0
+        if role_id == owner_role_id or role_id == member_role_id or system_role == system_role_admin_id:
+            comment_access = 1
+            
+        current_date = str(date.today())
+            
+        if comment_form.validate_on_submit():
+            cur.execute( f'INSERT INTO "comment" ("task_id", "user_id", "postdate", "descr") VALUES(%s, %s, %s, %s);', [task_id, cur_user_id, current_date, comment_form.descr.data])
+            return redirect(url_for('task', cur_user_id = cur_user_id, project_id = project_id, task_id=task_id))
+                
+        return render_template('newcomment.html',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                project_page=project_page,
+                                system_role = system_role,
+                                nickname=nickname,
+                                cur_user_id=cur_user_id,
+                                project=project,
+                                form=comment_form,
+                                current_date=current_date,
+                                title='Новый комментарий')
+    
+# Редактировать комментарий
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<task_id>/comment_edit/<comment_id>', methods=['GET','POST'])
+def comment_edit( cur_user_id, project_id, task_id, comment_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('editcomment', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=0
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        comment_form = CommentForm()
+        
+        role_id = 0
+        participent=0
+        if not (pruser is None):
+            role_id = pruser[0]
+            participent=1
+        
+        comment_access = 0
+        if role_id == owner_role_id or role_id == member_role_id or system_role == system_role_admin_id:
+            comment_access = 1
+            
+        comment=(cur.execute( f'SELECT "postdate", "descr" from "comment" where "comment_id" = %s;', [comment_id]).fetchone())
+        postdate=comment[0]
+            
+        if comment_form.validate_on_submit():
+            cur.execute( f'UPDATE "comment" SET "descr" = %s WHERE "comment_id" = %s;', [comment_form.descr.data, comment_id])
+            return redirect(url_for('task', cur_user_id = cur_user_id, project_id = project_id, task_id=task_id))
+                
+        return render_template('comment_edit.html',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                project_page=project_page,
+                                system_role = system_role,
+                                nickname=nickname,
+                                cur_user_id=cur_user_id,
+                                project=project,
+                                form=comment_form,
+                                postdate=postdate,
+                                title='Редактировать комментарий')
+    
+# Удалить комментарий
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<task_id>/comment_remove/<comment_id>', methods=['GET','POST'])
+def comment_remove( cur_user_id, project_id, task_id, comment_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('editcomment', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=0
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        cur.execute( f'delete from "comment" where "comment_id" = %s', [comment_id]);
+        return redirect(url_for('task', cur_user_id = cur_user_id, project_id = project_id, task_id=task_id) ) 
 
 '''
 # Добавить в проект задачу

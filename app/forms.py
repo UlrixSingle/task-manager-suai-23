@@ -37,6 +37,10 @@ class TaskAddForm(FlaskForm):
     user = SelectField('Ответственное лицо', [validators.InputRequired()], id='select_user')
     
     submit = SubmitField('Создать')
+
+class CommentForm(FlaskForm):
+    descr = StringField('Содержание', [validators.Length(min=0,max=600)])
+    submit = SubmitField('Отправить')
     
 '''
 class EditUserForm(FlaskForm):
@@ -46,10 +50,6 @@ class EditUserForm(FlaskForm):
 class TaskEditForm(FlaskForm):
     
     submit = SubmitField('Сохранить')
-    
-class CommentAddForm(FlaskForm):
-    
-    submit = SubmitField('Отправить')
     
 class CommentEditForm(FlaskForm):
     

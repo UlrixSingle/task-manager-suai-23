@@ -58,6 +58,10 @@
             {% for comment in comments %}
             <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = comment[4]) }}">
             </form>
+            <form id="editCommentForm{{loop.index}}" method="GET" action="{{ url_for('comment_edit', cur_user_id = cur_user_id, project_id=project[0], task_id=task[0], comment_id=comment[0]) }}">
+            </form>
+            <form id="removeCommentForm{{loop.index}}" method="POST" action="{{ url_for('comment_remove', cur_user_id = cur_user_id, project_id=project[0],  task_id=task[0], comment_id=comment[0]) }}">
+            </form>
             {% endfor %}
             
             <b>Комментарии: </b> </br>
@@ -73,8 +77,8 @@
                     <td style="border-top: 2px solid black; display:block" onclick="userProfileForm{{loop.index}}.submit();">{{ comment[2] }}</td>
                     <td style="border-top: 2px solid black">{{ comment[3] }}</br></br> </td>
                     {% if comment_access and comment[4] == cur_user_id %}
-                    <td style="border-top: 2px solid black"> <input type="submit" value="Редактировать"/> </br> </td>
-                    <td style="border-top: 2px solid black"> <input type="submit" value="Удалить"/> </br> </td>
+                    <td style="border-top: 2px solid black"> <input type="submit" value="Редактировать" onclick="editCommentForm{{loop.index}}.submit();"/> </br> </td>
+                    <td style="border-top: 2px solid black"> <input type="submit" value="Удалить" onclick="removeCommentForm{{loop.index}}.submit();"/> </br> </td>
                     {% else %}
                     <td style="border-top: 2px solid black"></td>
                     <td style="border-top: 2px solid black"></td>
@@ -85,7 +89,9 @@
             
             </br>
             {% if comment_access %}
-            <input type="submit" value="Добавить комментарий"/> </br>
+            <form id="newCommentForm" method="GET" action="{{ url_for('newcomment', cur_user_id = cur_user_id, project_id=project[0], task_id=task[0]) }}">
+                <input type="submit" value="Добавить комментарий" onclick="newCommentForm.submit();"/> </br>
+            </form>
             {% endif %}
             
             </br>
