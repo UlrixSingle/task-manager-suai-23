@@ -133,7 +133,7 @@
                 </li>
             </form>
 
-            <form id="exitForm" method="GET" action="{{ url_for('exit', cur_user_id = cur_user_id) }}">
+            <form id="exitForm" method="GET" action="{{ url_for('logout') }}">
                 <li onclick="exitForm.submit();" style="float:right">
                     {% if home_page == 4 %}
                         <a class="active">Выйти из системы</a>

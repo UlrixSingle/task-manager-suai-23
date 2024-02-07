@@ -3,7 +3,9 @@
 {% block innercontent %}
         <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
             {% if access %}
-            <input type="submit" value="Добавить задачу"/> </br>
+            <form id="newTaskForm" method="GET" action="{{ url_for('newtask', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                <input type="submit" value="Добавить задачу" onclick="newTaskForm.submit();"/> </br>
+            </form>
             {% endif %}
             
             {% for stage_index in range( stages_length) %}
