@@ -5,25 +5,34 @@
         <div style="margin-top: 10%;"></div>
 
         <label style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)"> 
-            Выберите, под какой учетной записью вы хотите войти: 
+            Для того, чтобы войти в систему, пожалуйста, введите свои данные: 
         </label>
         
         </br>
         </br>
         </br>
         
-        <ul>
-            <form id="userForm" method="GET" action="{{ url_for('enter_user') }}">
-                <li style="float:none" onclick="userForm.submit();">
-                    <a>Войти как пользователь</a>
-                </li>
-            </form>
-            <form id="adminForm" method="GET" action="{{ url_for('enter_admin') }}">
-                <li style="float:none" onclick="adminForm.submit();">
-                    <a>Войти как администратор</a>
-                </li>
-            </form>
-        </ul>
+        <h2>{{ title }}</h2>
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            
+            {% if form.nickname.errors %}
+                {% for error in form.nickname.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.nickname.label }} {{ form.nickname(class="form-control form-control-lg") }}</div>
+            
+            {% if form.login.errors %}
+                {% for error in form.login.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.login.label }} {{ form.login(class="form-control form-control-lg") }}</div>
+
+            <div>{{ form.password.label }} {{ form.password() }}</div>
+            {{ form.submit() }}
+        </form>
         
         </br>
 

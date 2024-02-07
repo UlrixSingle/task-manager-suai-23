@@ -1,11 +1,19 @@
+from app.forms import RegistrationForm
 from flask import request
-from flask import render_template
+from flask import render_template, redirect, flash, url_for
 from app import app
 import psycopg
 
 # Корневой тест
 @app.route('/', methods=['GET','POST'])
 def index():
+    if request.method == 'GET':
+        print("register (GET)")
+    elif request.method == 'POST':
+        print("register (POST)")
+    else:
+        print("register Unknown")
+    
     if request.method == 'GET':
         return "Hello, World! (GET)"
     elif request.method == 'POST':
@@ -42,6 +50,50 @@ def get_admin_home():
         message = f"Ошибка подключения: {e}"
         return message
 '''
+
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            page_header="Создание новой учетной записи"
+            
+            home_view=1
+            home_page=0
+            
+            cur_user_id=1
+            
+            reg_form = RegistrationForm()
+            reg_form.names = [name[0] for name in cur.execute( f'SELECT "nickname" FROM "user";').fetchall()]
+            reg_form.logins = [login[0] for login in cur.execute( f'SELECT "login" FROM "user";').fetchall()]
+            
+            reg_form.system_role.choices = cur.execute( f'SELECT * FROM system_role;').fetchall()
+            
+            if reg_form.validate_on_submit():
+                # создать запись в базе данных
+                return f'Регистрация {reg_form.nickname.data} успешна'
+            
+            for fieldName, errorMessages in reg_form.errors.items():
+                for err in errorMessages:
+                    print(err)
+                    
+            return render_template( 'registration.html', 
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    cur_user_id=cur_user_id,
+                                    title='Регистрация', 
+                                    form=reg_form)
+
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
 
 # Ошибка
 @app.route('/err', methods=['GET'])
@@ -89,68 +141,6 @@ def welcome():
             cur_user_id=1
             
         return render_template('welcome.html',
-                                page_header=page_header,
-                                home_view=home_view,
-                                home_page=home_page,
-                                cur_user_id=cur_user_id)
-    
-    except Exception as e:
-        message = f"Ошибка подключения: {e}"
-        return message
-    
-# Вход под пользователем
-@app.route('/enter_user', methods=['GET','POST'])
-def enter_user():
-    try:
-        with psycopg.connect(host=app.config['DB_SERVER'], 
-                              port=app.config['DB_PORT'],
-                              user=app.config['DB_USER'], 
-                              password=app.config['DB_PASSWORD'],
-                              dbname=app.config['DB_NAME'],
-                              connect_timeout=app.config['DB_TIMEOUT']) as con:
-            #cur = con.cursor()
-            
-            page_header="Вход в учетную запись пользователя"
-            
-            home_view=1
-            home_page=0
-            
-            cur_user_id=1
-            
-            #page_header = str(system_role + " " + nickname)
-            
-        return render_template('enter_user.html',
-                                page_header=page_header,
-                                home_view=home_view,
-                                home_page=home_page,
-                                cur_user_id=cur_user_id)
-    
-    except Exception as e:
-        message = f"Ошибка подключения: {e}"
-        return message
-    
-# Вход под администратором
-@app.route('/enter_admin', methods=['GET','POST'])
-def enter_admin():
-    try:
-        with psycopg.connect(host=app.config['DB_SERVER'], 
-                              port=app.config['DB_PORT'],
-                              user=app.config['DB_USER'], 
-                              password=app.config['DB_PASSWORD'],
-                              dbname=app.config['DB_NAME'],
-                              connect_timeout=app.config['DB_TIMEOUT']) as con:
-            #cur = con.cursor()
-            
-            page_header="Вход в учетную запись администратора"
-            
-            home_view=1
-            home_page=0
-            
-            cur_user_id=1
-            
-            #page_header = str(system_role + " " + nickname)
-            
-        return render_template('enter_admin.html',
                                 page_header=page_header,
                                 home_view=home_view,
                                 home_page=home_page,
@@ -616,7 +606,7 @@ def project_user_remove( cur_user_id, user_id, project_id):
         message = f"Ошибка подключения: {e}"
         return message
 
-# Описание проекта
+# Описание задачи
 @app.route('/<int:cur_user_id>/project/<int:project_id>/task/<int:task_id>', methods=['GET','POST'])
 def task( cur_user_id, project_id, task_id):
     try:
@@ -666,6 +656,64 @@ def task( cur_user_id, project_id, task_id):
                                     comments=comments,
                                     edit_access=edit_access,
                                     comment_access=comment_access)
+
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Добавить в проект задачу
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/add', methods=['GET','POST'])
+def task_add( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            page_header="Создание новой задачи"
+            
+            home_view=1
+            home_page=0
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+                [project_id])
+            cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+            prteam = cur.fetchall()
+            cur.execute( f'drop table "prteam";')
+            
+            task_form = TaskAddForm()
+            
+            task_form.stage.choices = cur.execute( f'SELECT * FROM stage;').fetchall()
+            task_form.priority.choices = cur.execute( f'SELECT * FROM priority;').fetchall()
+            task_form.user.choices = prteam
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            if reg_form.validate_on_submit():
+                # создать запись в базе данных
+                return f'Задача {reg_form.nickname.data} добавлена'
+                    
+            return render_template( 'task_add.html', 
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    system_role = system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project,
+                                    title='Новая задача', 
+                                    form=task_form)
 
     except Exception as e:
         message = f"Ошибка подключения: {e}"

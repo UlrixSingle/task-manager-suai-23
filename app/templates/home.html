@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div>
-        <div style="margin-top: 10%;"></div>
-
         <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
             {% if system_role_id == system_role_admin_id%}
             <label> Список администраторов системы </label>
@@ -61,7 +58,7 @@
             <label> Список проектов </label>
             
             {% for project in projects %}
-            <form id="projectForm{{loop.index}}" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0]) }}">
+            <form id="projectForm{{loop.index}}" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
             </form>
             {% endfor %}
             
@@ -123,7 +120,4 @@
             
             </br>
         </div>
-
-        <div style="margin-bottom: 10%;"></div>
-    </div>
 {% endblock content %}
