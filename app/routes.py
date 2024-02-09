@@ -778,6 +778,8 @@ def task( cur_user_id, project_id, task_id):
             project_page=0
             system_role_admin_id = 1
             owner_role_id = 1
+            member_role_id = 2
+            guest_role_id = 3
             
             project = cur.execute( f'select "project_id", "name" from "project" where "project_id" = %s', [project_id]).fetchone()
             
@@ -797,9 +799,26 @@ def task( cur_user_id, project_id, task_id):
             nickname = cur_user[2]
             cur_user_id = cur_user[3]
             
-            remove_access = 1
-            edit_access = 1
-            comment_access = 1
+            cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";', [project_id])
+            cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+            prteam = cur.fetchall()
+            pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+            cur.execute( f'drop table "prteam";')
+            
+            remove_access = 0
+            edit_access = 0
+            comment_access = 0
+            
+            role_id = 0
+            participent=0
+            if not (pruser is None) or system_role_id == system_role_admin_id:
+                role_id = pruser[0]
+                comment_access = 1
+            
+            pr_access_granted = 0
+            if role_id == owner_role_id or role_id == member_role_id:
+                remove_access = 1
+                edit_access = 1
             
             page_header = str(system_role + " " + nickname)
             
