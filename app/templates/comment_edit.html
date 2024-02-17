@@ -1,0 +1,16 @@
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            <h2>{{ title }}</h2>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div>Дата отправки: {{ postdate }}</div>
+                <div>{{ form.descr.label }} {{ form.descr() }}</div>
+                
+                <div></br></br></div>
+                {{ form.submit() }}
+            </form>
+        </div>
+{% endblock innercontent %}

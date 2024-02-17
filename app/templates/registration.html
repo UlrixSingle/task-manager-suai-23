@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+        <h2>{{ title }}</h2>
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            
+            {% if form.nickname.errors %}
+                {% for error in form.nickname.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.nickname.label }} {{ form.nickname(class="form-control form-control-lg") }}</div>
+            
+            {% if form.system_role.errors %}
+                {% for error in form.system_role.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.system_role.label }} {{ form.system_role(class="form-control form-control-lg") }}</div>
+            
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.email.label }} {{ form.email(class="form-control form-control-lg", placeholder="[email protected]") }}</div>
+            
+            <div></br></div>
+            
+            {% if form.login.errors %}
+                {% for error in form.login.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.login.label }} {{ form.login(class="form-control form-control-lg") }}</div>
+            
+            <div>{{ form.password.label }} {{ form.password() }}</div>
+            <div>{{ form.confirm.label }} {{ form.confirm() }}</div>
+            {{ form.submit() }}
+        </form>
+    </div>
+{% endblock %}

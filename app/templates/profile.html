@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div>
+        <div style="margin-top: 10%;"></div>
+
+        <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            {{ user[0] }} системы</br>
+            <b>Никнейм: </b> {{ user[1] }}</br>
+            <b>Фамилия: </b> {{ user[2] }}</br>
+            <b>Имя: </b> {{ user[3] }}</br>
+            <b>Отчество: </b> {{ user[4] }}</br>
+            <b>Почта: </b> {{ user[5] }}</br>
+            <b>Телефон: </b> {{ user[6] }}</br>
+            <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
+        </div>
+
+        {% if access %}
+        <input type="submit" value="Редактировать"/>
+        {% endif %}
+
+        <div style="margin-bottom: 10%;"></div>
+    </div>
+{% endblock content %}

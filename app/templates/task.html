@@ -1,0 +1,99 @@
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 800px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            </br> <b>Задача "{{ task[2] }}" </b> </br> </br> 
+            {% if edit_access %}
+            <div> 
+                <form id="editTaskForm" method="GET" action="{{ url_for('task_edit', cur_user_id = cur_user_id, project_id = project[0], task_id = task[0]) }}">
+                    <input type="submit" onclick="removeTaskForm.submit();" value="Редактировать"/> 
+                </form>
+            </div>
+            {% endif %}
+            {% if remove_access %}
+            <div> 
+                <form id="removeTaskForm" method="GET" action="{{ url_for('task_remove', cur_user_id = cur_user_id, project_id = project[0], task_id = task[0]) }}">
+                    <input type="submit" onclick="removeTaskForm.submit();" value="Удалить"/> 
+                </form>
+            </div>
+            {% endif %}
+            
+            <table>
+                <tr>
+                    <th style="text-align:left"> Этап: </th>
+                    <td style="text-align:left"> {{ task[6] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Приоритет: </th>
+                    <td style="text-align:left"> {{ task[7] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Тип задачи: </th>
+                    <td style="text-align:left"> {{ task[8] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Вид работы: </th>
+                    <td style="text-align:left"> {{ task[9] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Ответственное лицо: </th>
+                    {% if task[10] == None %}
+                    <td style="text-align:left"> {{ task[10] }} </td>
+                    {% else %}
+                    <td style="text-align:left"> {{ user_name[0] }} </td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Дата начала работ: </th>
+                    <td style="text-align:left"> {{ task[4] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Дата окончания работ: </th>
+                    <td style="text-align:left"> {{ task[5] }} </td>
+                </tr>
+            </table>
+            
+            <b>Описание: </b></br> {{ task[3] }} </br> </br>
+            
+            {% for comment in comments %}
+            <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = comment[4]) }}">
+            </form>
+            <form id="editCommentForm{{loop.index}}" method="GET" action="{{ url_for('comment_edit', cur_user_id = cur_user_id, project_id=project[0], task_id=task[0], comment_id=comment[0]) }}">
+            </form>
+            <form id="removeCommentForm{{loop.index}}" method="POST" action="{{ url_for('comment_remove', cur_user_id = cur_user_id, project_id=project[0],  task_id=task[0], comment_id=comment[0]) }}">
+            </form>
+            {% endfor %}
+            
+            <b>Комментарии: </b> </br>
+            <table>
+                <thead>
+                    <th style = "width:100px">Дата</th>
+                    <th>Ник</th>
+                    <th>Содержание</th>
+                </thead>
+                {% for comment in comments %}
+                <tr>
+                    <td style="border-top: 2px solid black">{{ comment[1] }}</td>
+                    <td style="border-top: 2px solid black; display:block" onclick="userProfileForm{{loop.index}}.submit();">{{ comment[2] }}</td>
+                    <td style="border-top: 2px solid black">{{ comment[3] }}</br></br> </td>
+                    {% if comment_access and comment[4] == cur_user_id %}
+                    <td style="border-top: 2px solid black"> <input type="submit" value="Редактировать" onclick="editCommentForm{{loop.index}}.submit();"/> </br> </td>
+                    <td style="border-top: 2px solid black"> <input type="submit" value="Удалить" onclick="removeCommentForm{{loop.index}}.submit();"/> </br> </td>
+                    {% else %}
+                    <td style="border-top: 2px solid black"></td>
+                    <td style="border-top: 2px solid black"></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+            
+            </br>
+            {% if comment_access %}
+            <form id="newCommentForm" method="GET" action="{{ url_for('newcomment', cur_user_id = cur_user_id, project_id=project[0], task_id=task[0]) }}">
+                <input type="submit" value="Добавить комментарий" onclick="newCommentForm.submit();"/> </br>
+            </form>
+            {% endif %}
+            
+            </br>
+        </div>
+{% endblock innercontent %}

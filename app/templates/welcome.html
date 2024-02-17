@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="padding: 1%; width: 40%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+        <div style="margin-top: 10%;"></div>
+
+        <label> 
+            <h2>{{ title }}</h2>
+        </label>
+        </br>
+        
+        {% if current_user.is_authenticated %}
+            <p>Добро пожаловать, {{ current_user.name }}!</p>
+        {% else %}
+            <p>Вы не вошли в систему.</p>
+        {% endif %}
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            
+            {% if form.login.errors %}
+                {% for error in form.login.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.login.label }} {{ form.login(class="form-control form-control-lg") }}</div>
+            
+            <div>{{ form.password.label }} {{ form.password() }}</div>
+            {{ form.submit() }}
+        </form>
+        
+        </br>
+
+        <div style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)">
+            <b>Внимание! </br> Доступ к системе разрешен только зарегистрированным пользователям! </b> </br>
+            Чтобы зарегистрироваться в системе, пожалуйста, обратитесь к администратору
+        </div>
+
+        <div style="margin-bottom: 10%;"></div>
+    </div>
+{% endblock content %}

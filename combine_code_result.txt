@@ -1,0 +1,2405 @@
+	Генерация базы данных
+	Содержание файла generate.sql
+--- Удаление информации предыдущей базы данных ---
+DROP TABLE IF EXISTS "system_role";
+DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS "project";
+DROP TABLE IF EXISTS "role";
+DROP TABLE IF EXISTS "team";
+DROP TABLE IF EXISTS "stage";
+DROP TABLE IF EXISTS "priority";
+DROP TABLE IF EXISTS "task";
+DROP TABLE IF EXISTS "comment";
+DROP TABLE IF EXISTS "announce";
+--- DROP DATABASE IF EXISTS "db"; ---
+
+--- Создание и заполнение таблицы Системная роль ---
+CREATE TABLE "system_role" (
+    "system_role_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "name" varchar(32) NOT NULL,
+    
+    CONSTRAINT "system_role_pk" PRIMARY KEY ("system_role_id"),
+    CONSTRAINT "system_role_unique_name" UNIQUE ("name")
+);
+
+INSERT INTO "system_role" ("name") VALUES
+	 ('Администратор'),
+	 ('Пользователь');
+
+
+--- Создание и заполнение таблицы Пользователь ---
+CREATE TABLE "user" (
+    "user_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "login" varchar(20) NOT NULL,
+    "password" varchar(64),
+    "nickname" varchar(20) NOT NULL,
+    "second_name" varchar(20),
+    "first_name" varchar(20),
+    "surname" varchar(20),
+    "descr" varchar(600),
+    "mail" varchar(32),
+    "phone" varchar(32),
+    "system_role_id" integer DEFAULT 2 NOT NULL,
+    
+    CONSTRAINT "user_pk" PRIMARY KEY ("user_id"),
+    CONSTRAINT "user_unique_login" UNIQUE ("login"),
+    CONSTRAINT "user_unique_nickname" UNIQUE ("nickname"),
+    CONSTRAINT "user_fk_system_role_id" FOREIGN KEY ("system_role_id") REFERENCES "system_role" ("system_role_id") ON UPDATE CASCADE
+);
+
+INSERT INTO "user" ("login", "password", "nickname", "second_name", "first_name", "surname", "descr", "mail", "phone", "system_role_id") VALUES
+	 ('user1','passuser1','TimBL','Бернерс-Ли','Тим','Конвей','Люблю мировую паутину',NULL,NULL,2),
+	 ('user2','passuser2','Knot','Кнут','Дональд',NULL,'Учу искусству программирования по всему миру',NULL,NULL,2),
+	 ('user3','passuser3','DoomGuy','Кармак','Джон','Стэн','Создаю известные игры. Джону Ромеро передавайте привет!',NULL,NULL,2),
+	 ('user4','passuser4','Builder','Пажитнов','Алексей','Леонидович','Ну ладно, дам поиграть в Tetris со своего телефона',NULL,NULL,2),
+	 ('admin1','passadmin1','Gendalf','Торвальдс','Линус','Нильс','Люблю пингвинов',NULL,NULL,1);
+
+
+--- Создание и заполнение таблицы Проект ---
+CREATE TABLE "project" (
+    "project_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "name" varchar(32) NOT NULL,
+    "descr" varchar(600),
+    "task_number" integer DEFAULT 0 NOT NULL,
+    "user_number" integer DEFAULT 0 NOT NULL,
+    
+    CONSTRAINT "project_pk" PRIMARY KEY ("project_id"),
+    CONSTRAINT "project_unique_name" UNIQUE ("name")
+);
+
+INSERT INTO "project" ("name",descr,task_number,user_number) VALUES
+	 ('Радиоуправляемая машинка','Модель машины на радиоуправлении',0,3);
+
+
+--- Создание и заполнение таблицы Роль (члена команды в проекте) ---
+CREATE TABLE "role" (
+    role_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    name varchar(32) NOT NULL,
+    
+    CONSTRAINT "role_pk" PRIMARY KEY ("role_id"),
+    CONSTRAINT "role_unique_name" UNIQUE ("name")
+);
+
+INSERT INTO "role" ("name") VALUES
+	 ('Руководитель проекта'),
+	 ('Участник проекта'),
+	 ('Гость');
+
+
+--- Создание и заполнение таблицы Команды проектов ---
+CREATE TABLE "team" (
+    "user_id" integer NOT NULL,
+    "project_id" integer NOT NULL,
+    "role_id" integer NOT NULL,
+    "job" varchar(32),
+    
+    CONSTRAINT "team_pk" PRIMARY KEY ("role_id"),
+    CONSTRAINT "team_fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("user_id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "team_fk_project_id" FOREIGN KEY ("project_id") REFERENCES "project" ("project_id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+INSERT INTO "team" ("user_id", "project_id", "role_id", "job") VALUES
+	 (1,1,1,'Программист'),
+	 (2,1,2,'Инженер'),
+	 (3,1,3,NULL);
+
+ 
+--- Создание и заполнение таблицы Этап выполнения (для задачи) ---
+CREATE TABLE "stage" (
+    "stage_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "name" varchar(20) NOT NULL,
+    
+    CONSTRAINT "stage_pk" PRIMARY KEY ("stage_id"),
+    CONSTRAINT "stage_unique_name" UNIQUE ("name")
+);
+
+INSERT INTO "stage" ("name") VALUES
+	 ('Предстоит сделать'),
+	 ('Анализ'),
+	 ('В работе'),
+	 ('На рассмотрении'),
+	 ('Готово');
+
+
+--- Создание и заполнение таблицы Приоритет (для задачи) ---
+CREATE TABLE "priority" (
+    "priority_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "name" varchar(20) NOT NULL,
+    "colour" varchar(20),
+    "weight" integer DEFAULT 0 NOT NULL,
+    
+    CONSTRAINT "priority_pk" PRIMARY KEY ("priority_id"),
+    CONSTRAINT "priority_unique_name" UNIQUE ("name")
+);
+
+INSERT INTO "priority" ("name", "colour", "weight") VALUES
+	 ('Незначительная','#e6e6e6',0),
+	 ('Средняя','#e6f6cf',-1),
+	 ('Серьезная','#ffee9c',-2),
+	 ('Ключевая','#ffc8ea',-3),
+	 ('Критическая','#E30000',-4);
+
+
+--- Создание и заполнение таблицы Задача ---
+CREATE TABLE "task" (
+    "task_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "project_id" integer NOT NULL,
+    "name" varchar(64) NOT NULL,
+    "descr" varchar(600),
+    "begindate" date,
+    "enddate" date,
+    "stage_id" integer DEFAULT 1 NOT NULL,
+    "priority_id" integer DEFAULT 1 NOT NULL,
+    "type" varchar(32),
+    "field" varchar(32),
+    "user_id" integer DEFAULT 0,
+    
+    CONSTRAINT "task_pk" PRIMARY KEY ("task_id"),
+    CONSTRAINT "task_fk_project_id" FOREIGN KEY ("project_id") REFERENCES "project" ("project_id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "task_fk_stage_id" FOREIGN KEY ("stage_id") REFERENCES "stage" ("stage_id") ON UPDATE CASCADE,
+    CONSTRAINT "task_fk_priority_id" FOREIGN KEY ("priority_id") REFERENCES "priority" ("priority_id") ON UPDATE CASCADE
+);
+
+INSERT INTO "task" ("project_id", "name", "descr", "begindate", "enddate", "stage_id", "priority_id", "type", "field", "user_id") VALUES
+	 (1,'Корпус','Собрать корпус',NULL,NULL,4,2,NULL,'Инженерия',NULL),
+	 (1,'Колеса','Подобрать хорошие колеса',NULL,NULL,3,2,NULL,'Закупки',NULL),
+	 (1,'Мотор','Подобрать быстрый и достаточно мощный двигатель. Лучше всего будет, если он еще не будет занимать много места',NULL,NULL,2,2,NULL,'Закупки',NULL),
+	 (1,'Контроллер и пульт','Подобрать систему радиоуправления',NULL,NULL,1,1,NULL,'Закупки',NULL),
+	 (1,'Схема','',NULL,NULL,5,3,'Планирование','',1);
+
+
+--- Создание и заполнение таблицы Комментарий (к задаче) ---
+CREATE TABLE "comment" (
+    "comment_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "task_id" integer NOT NULL,
+    "user_id" integer NOT NULL,
+    "postdate" date NOT NULL,
+    "descr" varchar(600),
+    
+    CONSTRAINT "comment_pk" PRIMARY KEY ("comment_id"),
+    CONSTRAINT "comment_fk_task_id" FOREIGN KEY ("task_id") REFERENCES "task" ("task_id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "comment_fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("user_id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+INSERT INTO "comment" ("task_id", "user_id", "postdate", "descr") VALUES
+	 (1,2,'2024-01-12','Почему не в виде гоночной?'),
+	 (1,1,'2024-01-12','Звучит неплохо. Давайте делать грузовик'),
+	 (1,2,'2024-01-12','Хорошо, я тоже согласен'),
+	 (1,3,'2024-01-12','Может тогда сделаете грузовик? Он, конечно, не быстрый, но зато можно будет уместить много дополнительных элементов'),
+	 (1,1,'2024-01-12','Думаю сделать ее в виде пожарной машины'),
+	 (1,1,'2024-01-12','Потому что на гоночную машину кроме камеры что-то тяжело будет прицепить');
+ 
+ 
+--- Создание и заполнение таблицы Обьявление ---
+CREATE TABLE "announce" (
+    "announce_id" integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    "postdate" date NOT NULL,
+    "descr" varchar(600) NOT NULL,
+    "user_id" integer NOT NULL,
+    
+    CONSTRAINT "announce_pk" PRIMARY KEY ("announce_id")
+);
+
+	Основные программы приложения
+	Содержание файла routes.py
+from app.forms import RegistrationForm, LoginForm
+from app.forms import TaskAddForm
+from app.forms import CommentForm
+from flask import request
+from flask import render_template, redirect, flash, url_for
+from app import app
+import psycopg
+from app.user import User
+from app import login_manager
+from flask_login import UserMixin
+from flask_login import login_user, current_user
+from flask_login import logout_user
+from datetime import date
+
+# Корневой тест
+@app.route('/', methods=['GET','POST'])
+def index():
+    if request.method == 'GET':
+        print("register (GET)")
+    elif request.method == 'POST':
+        print("register (POST)")
+    else:
+        print("register Unknown")
+        
+    if current_user.is_authenticated:
+        return redirect(url_for('home', cur_user_id = current_user.id))
+    else:
+        return redirect(url_for('welcome'))
+
+@login_manager.user_loader
+def load_user(id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        login, password, name = cur.execute('SELECT login, password, nickname '
+                                      'FROM "user" '
+                                      'WHERE user_id = %s', (id,)).fetchone()
+    return User(id, login, password, name)
+
+'''
+# Вход
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    login_form = LoginForm()
+    if form.validate_on_submit():
+        with psycopg.connect(...) as con:
+            res = cur.execute('SELECT id, login, password ' 
+                              'FROM "user" '
+                              'WHERE login = %s', (login_form.login.data,)).fetchone()
+        if res is None or not check_password_hash(res[2], login_form.password.data):
+            flash('Попытка входа неудачна', 'danger')
+            return redirect(url_for('login'))
+        id, login, password = res
+        user = User(id, login, password)
+        login_user(user, remember=login_form.remember_me.data)
+        flash(f'Вы успешно вошли в систему, {current_user.login}', 'danger')
+        return redirect(url_for('index'))
+    return render_template('login.html', title='Вход', form=login_form)
+
+@app.route('/admin_home', methods=['GET','POST'])
+def get_admin_home():
+    message = "Состояние неопределенно"
+    admin_system_role_id = 1
+    user_system_role_id = 2
+    
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            admin_names = cur.execute(f'SELECT "nickname" FROM "user" WHERE system_role_id = %s;', [1]).fetchall()
+            user_names = cur.execute(f'SELECT "nickname" FROM "user" WHERE system_role_id = %s;', [2]).fetchall()
+            return render_template('home.html',
+                                    system_role_id=1,
+                                    system_role = 'Администратор',
+                                    nickname='Penguin',
+                                    admin_names=admin_names,
+                                    user_names=user_names)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+'''
+
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            page_header="Создание новой учетной записи"
+            
+            home_view=1
+            home_page=0
+            
+            cur_user_id=1
+            
+            reg_form = RegistrationForm()
+            reg_form.names = [name[0] for name in cur.execute( f'SELECT "nickname" FROM "user";').fetchall()]
+            reg_form.logins = [login[0] for login in cur.execute( f'SELECT "login" FROM "user";').fetchall()]
+            
+            reg_form.system_role.choices = cur.execute( f'SELECT * FROM system_role;').fetchall()
+            
+            if reg_form.validate_on_submit():
+                # создать запись в базе данных
+                return f'Регистрация {reg_form.nickname.data} успешна'
+            
+            for fieldName, errorMessages in reg_form.errors.items():
+                for err in errorMessages:
+                    print(err)
+                    
+            return render_template( 'registration.html', 
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    cur_user_id=cur_user_id,
+                                    title='Регистрация', 
+                                    form=reg_form)
+
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+
+# Ошибка
+@app.route('/err', methods=['GET'])
+def err():
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            
+        return render_template('err.html',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                cur_user_id=cur_user_id)
+    
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+
+# Приветствующая страница
+@app.route('/welcome', methods=['GET', 'POST'])
+def welcome():
+    #try:
+        page_header="Веб-приложение управления проектами"
+                
+        home_view=1
+        if not current_user.is_authenticated:
+            home_view=0
+        
+        home_page=0
+        
+        login_form = LoginForm()
+        if login_form.validate_on_submit():
+            res = None
+            with psycopg.connect(host=app.config['DB_SERVER'], 
+                                port=app.config['DB_PORT'],
+                                user=app.config['DB_USER'], 
+                                password=app.config['DB_PASSWORD'],
+                                dbname=app.config['DB_NAME'],
+                                connect_timeout=app.config['DB_TIMEOUT']) as con:
+                cur = con.cursor()
+                
+                res = cur.execute('SELECT user_id, login, password, nickname ' 
+                                        'FROM "user" '
+                                        'WHERE login = %s', (login_form.login.data,)).fetchone()
+                print(res)
+                # if res is None or not check_password_hash(res[2], login_form.password.data):
+                if res is None or not res[2] == login_form.password.data:
+                    flash('Попытка входа неудачна', 'danger')
+                    return redirect(url_for('welcome'))
+                
+                id, login, password, name = res
+                user = User(id, login, password, name)
+                login_user(user, remember=login_form.remember_me.data)
+                flash(f'Вы успешно вошли в систему под логином {login}', 'danger')
+                return redirect(url_for('home', cur_user_id=id)) 
+          
+        cur_user_id = None
+        if current_user.is_authenticated:
+            cur_user_id = current_user.id
+        
+        return render_template('welcome.html',
+                                title='Вход',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                form=login_form,
+                                current_user=current_user,
+                                cur_user_id=cur_user_id)
+    
+    #except Exception as e:
+    #    message = f"Ошибка подключения: {e}"
+    #    return message
+    
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))    
+
+# Главная страница
+@app.route('/<int:cur_user_id>/home', methods=['GET','POST'])
+def home( cur_user_id):
+    #try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('home', cur_user_id=current_user.id))
+            
+            page_header=""
+            
+            home_view=1   
+            home_page=1
+            system_role_admin_id = 1
+            system_role_user_id = 2
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            
+            admins = []
+            users = []
+            projects = []
+            if system_role_id == system_role_admin_id:
+                admins = cur.execute(f'SELECT "user_id", "nickname" FROM "user" WHERE system_role_id = %s;', [system_role_admin_id]).fetchall()
+                users = cur.execute(f'SELECT "user_id", "nickname" FROM "user" WHERE system_role_id = %s;', [system_role_user_id] ).fetchall()
+                projects = cur.execute(f'SELECT "project_id", "name" FROM "project"').fetchall()
+            elif system_role_id == system_role_user_id:
+                cur.execute(f'create table "prlist" as select "project_id", "role"."name" as "role_name", "job" from "role" join (select * from "team" where "user_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";', [cur_user_id])
+                projects = cur.execute(f'select "project"."project_id" as "project_id", "project"."name" as "project_name", "role_name", "job" from "project" join "prlist" on "project"."project_id" = "prlist"."project_id";').fetchall()
+                cur.execute(f'drop table "prlist";')
+                
+            cur_user_id = cur_user[3]
+            
+            page_header = str(system_role + " " + nickname)
+            
+            return render_template('home.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    system_role_id=system_role_id,
+                                    system_role = system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    admins=admins,
+                                    users=users,
+                                    projects=projects,
+                                    system_role_admin_id=system_role_admin_id)
+        
+    #except Exception as e:
+    #    message = f"Ошибка подключения: {e}"
+    #    return message
+    
+@app.route('/<int:cur_user_id>/announce', methods=['GET','POST'])
+def announce( cur_user_id):
+    return 'OK'
+    
+@app.route('/<int:cur_user_id>/exit', methods=['GET','POST'])
+def exit( cur_user_id):
+    return 'OK'
+
+@app.route('/<int:cur_user_id>/profile/<int:user_id>', methods=['GET','POST'])
+def profile( cur_user_id, user_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('profile', cur_user_id=current_user.id, user_id=user_id))
+            
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            system_role_admin_id = 1
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            user = cur.execute(
+                f'SELECT "usr"."name", "usr"."nickname", "usr"."second_name", "usr"."first_name", "usr"."surname", "usr"."mail", "usr"."phone", "usr"."descr", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [user_id]).fetchone()
+            
+            access = 0
+            if cur_user_id == user[8] or system_role_id == system_role_admin_id:
+                access = 1
+                
+            if cur_user_id == user[8]:
+                home_page=3
+            
+            page_header = str(system_role + " " + nickname)
+            
+            return render_template('profile.html',
+                                   page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    system_role = system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    user=user,
+                                    access=access)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Доска задач проекта
+@app.route('/<int:cur_user_id>/project/<int:project_id>/<string:sort_type>/<string:sort_way>', methods=['GET','POST'])
+def project( cur_user_id, project_id, sort_type, sort_way):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project', cur_user_id=current_user.id, project_id=project_id, sort_type=sort_type, sort_way=sort_way))
+            
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=1
+            system_role_admin_id = 1
+            owner_role_id = 1
+            member_role_id = 2
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            stages=cur.execute( f'select * from "stage"').fetchall()
+            
+            tasks=[]
+            tasks_n=[]
+            for i in range(len(stages)):
+                task_list = [cur.execute( f'select "task"."task_id", "task"."name" as "taskname", "descr", "begindate", "enddate", "stage_id", "task"."priority_id", "priority"."name" as "priority_name", "colour", "weight" from "task" join "priority" on "task"."priority_id" = "priority"."priority_id" where "task"."project_id" = %s and "task"."stage_id" = %s;', [project_id, i+1]).fetchall()]
+                tasks += task_list
+                tasks_n += [len(task_list[0])]
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+                [project_id])
+            cur.execute( f'select "user"."user_id", "nickname", "role_name", "job" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+            prteam = cur.fetchall()
+            
+            pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+            cur.execute( f'drop table "prteam";')
+            
+            role_id = 0
+            participent=0
+            if not (pruser is None):
+                role_id = pruser[0]
+                participent=1
+            
+            pr_access_granted = 0
+            if role_id == owner_role_id or role_id == member_role_id:
+                pr_access_granted = 1
+            
+            page_header = str(system_role + " " + nickname)
+
+            return render_template('project.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    system_role=system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    tasks=tasks,
+                                    tasks_n=tasks_n,
+                                    stages=stages,
+                                    stages_length=len(stages),
+                                    project=project,
+                                    tasks_maxlength=max(tasks_n),
+                                    access = pr_access_granted)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Доска задач проекта
+@app.route('/<int:cur_user_id>/project/<int:project_id>/analise', methods=['GET','POST'])
+def project_analise( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_analise', cur_user_id=current_user.id, project_id=project_id))
+            
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=2
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            stages=[]
+            tasks=[]
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            page_header = str(system_role + " " + nickname)
+
+            return render_template('project_analise.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    system_role=system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    tasks=tasks,
+                                    stages=stages,
+                                    project=project)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message    
+
+# Описание проекта
+@app.route('/<int:cur_user_id>/project/<int:project_id>/descr', methods=['GET','POST'])
+def project_descr( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_descr', cur_user_id=current_user.id, project_id=project_id))
+            
+            page_header= ""
+            
+            home_view=1
+            home_page=0
+            project_page=3
+            system_role_admin_id = 1
+            owner_role_id = 1
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+                [project_id])
+            cur.execute( f'select "user"."user_id", "nickname", "role_name", "job" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+            prteam = cur.fetchall()
+            
+            pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+            cur.execute( f'drop table "prteam";')
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            page_header = str(system_role + " " + nickname)
+            
+            role_id = 0
+            participent=0
+            if not (pruser is None):
+                role_id = pruser[0]
+                participent=1
+            
+            pr_access_granted = 0
+            if role_id == owner_role_id or system_role_id == system_role_admin_id:
+                pr_access_granted = 1
+            
+            return render_template('project_descr.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    system_role = system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project,
+                                    team=prteam,
+                                    participent=participent,
+                                    access = pr_access_granted)
+
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Выйти из проекта
+@app.route('/<int:cur_user_id>/project/<int:project_id>/exit', methods=['GET','POST'])
+def project_exit( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_exit', cur_user_id=current_user.id, project_id=project_id))
+            
+            cur.execute( f'delete from "team" where "user_id" = %s and "project_id" = %s', [cur_user_id, project_id]);
+            return redirect(url_for('home', cur_user_id = cur_user_id) )
+            
+            '''
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=0
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            return render_template('project_exit.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project)
+            '''
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Добавить участника в проект
+@app.route('/<int:cur_user_id>/project/<int:project_id>/add_member', methods=['GET','POST'])
+def project_user_add( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_user_add', cur_user_id=current_user.id))
+            
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=0
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            return render_template('project_user_add.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Изменить настройки участника проекта
+@app.route('/<int:cur_user_id>/project/<int:project_id>/edit_member/<user_id>', methods=['GET','POST'])
+def project_user_edit( cur_user_id, user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_user_edit', cur_user_id=current_user.id, user_id=user_id, project_id=project_id))
+            
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=0
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            return render_template('project_user_edit.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+
+# Удалить участника из проекта
+@app.route('/<int:cur_user_id>/project/<int:project_id>/remove_member/<user_id>', methods=['GET','POST'])
+def project_user_remove( cur_user_id, user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('project_user_remove', cur_user_id=current_user.id, user_id=user_id, project_id=project_id))
+            
+            cur.execute( f'delete from "team" where "user_id" = %s and "project_id" = %s', [user_id, project_id]);
+            return redirect(url_for('project_descr', cur_user_id = cur_user_id, project_id = project_id) )
+            
+            '''
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=0
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            return render_template('project_exit.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project)
+            '''
+            
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+
+# Описание задачи
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<int:task_id>', methods=['GET','POST'])
+def task( cur_user_id, project_id, task_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('task', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
+            
+            page_header= ""
+            
+            home_view=1
+            home_page=0
+            project_page=0
+            system_role_admin_id = 1
+            owner_role_id = 1
+            member_role_id = 2
+            guest_role_id = 3
+            
+            project = cur.execute( f'select "project_id", "name" from "project" where "project_id" = %s', [project_id]).fetchone()
+            
+            cur.execute( f'create table "task_stage" as select "task_id", "project_id", "task"."name" as "task_name", "descr", "begindate", "enddate", "stage"."name" as "stage_name", "priority_id", "type", "field", "user_id" from "task" join "stage" on "task"."stage_id" = "stage"."stage_id" where "task_id" = %s;', [task_id])
+            task = cur.execute( 'select "task_id", "project_id", "task_name", "descr", "begindate", "enddate", "stage_name", "priority"."name" as "priority_name", "type", "field", "user_id" from "task_stage" join "priority" on "task_stage"."priority_id" = "priority"."priority_id";').fetchone();
+            cur.execute( 'drop table "task_stage"');
+            
+            user_name = cur.execute( f'select nickname from "user" where "user_id" = %s', [task[10]]).fetchone();
+            
+            comments = cur.execute( f'select "comment_id", "postdate", "user"."nickname", "comment"."descr", "user"."user_id" from "comment" join "user" on "comment"."user_id" = "user"."user_id" where "comment"."task_id" = %s order by "comment"."comment_id";', [task_id]).fetchall()
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";', [project_id])
+            cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+            prteam = cur.fetchall()
+            pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+            cur.execute( f'drop table "prteam";')
+            
+            remove_access = 0
+            edit_access = 0
+            comment_access = 0
+            
+            role_id = 0
+            participent=0
+            if not (pruser is None) or system_role_id == system_role_admin_id:
+                role_id = pruser[0]
+                comment_access = 1
+            
+            pr_access_granted = 0
+            if role_id == owner_role_id or role_id == member_role_id:
+                remove_access = 1
+                edit_access = 1
+            
+            page_header = str(system_role + " " + nickname)
+            
+            return render_template('task.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    system_role = system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    project=project,
+                                    task=task,
+                                    comments=comments,
+                                    remove_access=remove_access,
+                                    edit_access=edit_access,
+                                    comment_access=comment_access,
+                                    user_name=user_name)
+
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+    
+# Добавить в проект задачу
+@app.route('/<int:cur_user_id>/project/<int:project_id>/newtask', methods=['GET','POST'])
+def newtask( cur_user_id, project_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('newtask', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=3
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        task_form = TaskAddForm()
+        task_form.stage.choices = cur.execute( f'SELECT * FROM stage;').fetchall()
+        task_form.priority.choices = cur.execute( f'SELECT "priority_id", "name" FROM priority;').fetchall()
+        task_form.user.choices = prteam
+        
+        role_id = 0
+        participent=0
+        if not (pruser is None):
+            role_id = pruser[0]
+            participent=1
+        
+        pr_access_granted = 0
+        if role_id == owner_role_id or role_id == member_role_id:
+            pr_access_granted = 1
+            
+        if task_form.validate_on_submit():
+            cur.execute( f'INSERT INTO "task" ("project_id", "name", "descr", "stage_id", "priority_id", "type", "field", "user_id") VALUES(%s, %s, %s, %s, %s, %s, %s, %s);', [project_id, task_form.name.data, task_form.descr.data, task_form.stage.data, task_form.priority.data, task_form.tasktype.data, task_form.taskfield.data, task_form.user.data])
+            return redirect(url_for('project', cur_user_id = cur_user_id, project_id = project_id, sort_type = 'all', sort_way = 'none'))
+                
+        return render_template('newtask.html',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                project_page=project_page,
+                                system_role = system_role,
+                                nickname=nickname,
+                                cur_user_id=cur_user_id,
+                                project=project,
+                                participent=participent,
+                                access = pr_access_granted,
+                                form=task_form)
+
+# Редактировать задачу
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<int:task_id>/task_edit', methods=['GET','POST'])
+def task_edit( cur_user_id, project_id, task_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('task_edit', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
+            
+            page_header=""
+            
+            home_view=1  
+            home_page=0
+            project_page=0
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            stages=[]
+            tasks=[]
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            page_header = str(system_role + " " + nickname)
+
+            return render_template('project_analise.html',
+                                    page_header=page_header,
+                                    home_view=home_view,
+                                    home_page=home_page,
+                                    project_page=project_page,
+                                    system_role=system_role,
+                                    nickname=nickname,
+                                    cur_user_id=cur_user_id,
+                                    tasks=tasks,
+                                    stages=stages,
+                                    project=project)
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message    
+    
+# Удалить задачу
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<int:task_id>/task_remove', methods=['GET','POST'])
+def task_remove( cur_user_id, project_id, task_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            if not current_user.is_authenticated:
+                return redirect(url_for('index'))
+            if not int(current_user.id) == cur_user_id:
+                return redirect(url_for('task_remove', cur_user_id=current_user.id, project_id=project_id, task_id=task_id))
+            
+            '''
+            page_header=""
+            
+            home_view=1
+            home_page=0
+            project_page=2
+            
+            project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+            stages=[]
+            tasks=[]
+            
+            cur_user = cur.execute(
+                f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+                [cur_user_id]).fetchone()
+            system_role_id = cur_user[0]
+            system_role = cur_user[1]
+            nickname = cur_user[2]
+            cur_user_id = cur_user[3]
+            
+            page_header = str(system_role + " " + nickname)
+            '''
+            
+            cur.execute( f'delete from "task" where "task_id" = %s', [task_id]);
+
+            return redirect(url_for('project', cur_user_id = cur_user_id, project_id = project_id,  sort_type = 'all', sort_way = 'none') ) 
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message    
+
+# Добавить комментарий
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<task_id>/newcomment', methods=['GET','POST'])
+def newcomment( cur_user_id, project_id, task_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('newcomment', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=0
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        comment_form = CommentForm()
+        
+        role_id = 0
+        participent=0
+        if not (pruser is None):
+            role_id = pruser[0]
+            participent=1
+        
+        comment_access = 0
+        if role_id == owner_role_id or role_id == member_role_id or system_role == system_role_admin_id:
+            comment_access = 1
+            
+        current_date = str(date.today())
+            
+        if comment_form.validate_on_submit():
+            cur.execute( f'INSERT INTO "comment" ("task_id", "user_id", "postdate", "descr") VALUES(%s, %s, %s, %s);', [task_id, cur_user_id, current_date, comment_form.descr.data])
+            return redirect(url_for('task', cur_user_id = cur_user_id, project_id = project_id, task_id=task_id))
+                
+        return render_template('newcomment.html',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                project_page=project_page,
+                                system_role = system_role,
+                                nickname=nickname,
+                                cur_user_id=cur_user_id,
+                                project=project,
+                                form=comment_form,
+                                current_date=current_date,
+                                title='Новый комментарий')
+    
+# Редактировать комментарий
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<task_id>/comment_edit/<comment_id>', methods=['GET','POST'])
+def comment_edit( cur_user_id, project_id, task_id, comment_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('editcomment', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=0
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        comment_form = CommentForm()
+        
+        role_id = 0
+        participent=0
+        if not (pruser is None):
+            role_id = pruser[0]
+            participent=1
+        
+        comment_access = 0
+        if role_id == owner_role_id or role_id == member_role_id or system_role == system_role_admin_id:
+            comment_access = 1
+            
+        comment=(cur.execute( f'SELECT "postdate", "descr" from "comment" where "comment_id" = %s;', [comment_id]).fetchone())
+        postdate=comment[0]
+            
+        if comment_form.validate_on_submit():
+            cur.execute( f'UPDATE "comment" SET "descr" = %s WHERE "comment_id" = %s;', [comment_form.descr.data, comment_id])
+            return redirect(url_for('task', cur_user_id = cur_user_id, project_id = project_id, task_id=task_id))
+                
+        return render_template('comment_edit.html',
+                                page_header=page_header,
+                                home_view=home_view,
+                                home_page=home_page,
+                                project_page=project_page,
+                                system_role = system_role,
+                                nickname=nickname,
+                                cur_user_id=cur_user_id,
+                                project=project,
+                                form=comment_form,
+                                postdate=postdate,
+                                title='Редактировать комментарий')
+    
+# Удалить комментарий
+@app.route('/<int:cur_user_id>/project/<int:project_id>/task/<task_id>/comment_remove/<comment_id>', methods=['GET','POST'])
+def comment_remove( cur_user_id, project_id, task_id, comment_id):
+    with psycopg.connect(host=app.config['DB_SERVER'], 
+                            port=app.config['DB_PORT'],
+                            user=app.config['DB_USER'], 
+                            password=app.config['DB_PASSWORD'],
+                            dbname=app.config['DB_NAME'],
+                            connect_timeout=app.config['DB_TIMEOUT']) as con:
+        cur = con.cursor()
+        
+        if not current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if not int(current_user.id) == cur_user_id:
+            return redirect(url_for('editcomment', cur_user_id=current_user.id, project_id=project_id))
+        
+        page_header= ""
+        
+        home_view=1     
+        home_page=0
+        project_page=0
+        system_role_admin_id = 1
+        owner_role_id = 1
+        member_role_id = 2
+        
+        project = cur.execute( f'select "project_id", "name", "descr" from "project" where "project_id" = %s', [project_id]).fetchone()
+        
+        cur.execute( f'create table "prteam" as select "user_id", "project_id", "role"."name" as "role_name", "job", "role"."role_id" from "role" join (select * from "team" where "project_id" = %s) "raw" on "role"."role_id" = "raw"."role_id";',
+            [project_id])
+        cur.execute( f'select "user"."user_id", "nickname" from "user" join "prteam" on "user"."user_id" = "prteam"."user_id";')
+        prteam = cur.fetchall()
+        print(prteam)
+        
+        pruser = cur.execute( f'select "role_id" from "prteam" where "prteam"."user_id" = %s;', [cur_user_id]).fetchone()
+        cur.execute( f'drop table "prteam";')
+        
+        cur_user = cur.execute(
+            f'SELECT "usr"."system_role_id", "usr"."name", "usr"."nickname", "usr"."user_id" FROM (select * from "user" natural full outer join "system_role") "usr" WHERE  "user_id" = %s;',
+            [cur_user_id]).fetchone()
+        system_role_id = cur_user[0]
+        system_role = cur_user[1]
+        nickname = cur_user[2]
+        cur_user_id = cur_user[3]
+        
+        page_header = str(system_role + " " + nickname)
+        
+        cur.execute( f'delete from "comment" where "comment_id" = %s', [comment_id]);
+        return redirect(url_for('task', cur_user_id = cur_user_id, project_id = project_id, task_id=task_id) ) 
+
+'''
+# Добавить в проект задачу
+@app.route('/<int:cur_user_id>/project/<int:project_id>/newtask', methods=['GET','POST'])
+def task_add( cur_user_id, project_id):
+    try:
+        with psycopg.connect(host=app.config['DB_SERVER'], 
+                              port=app.config['DB_PORT'],
+                              user=app.config['DB_USER'], 
+                              password=app.config['DB_PASSWORD'],
+                              dbname=app.config['DB_NAME'],
+                              connect_timeout=app.config['DB_TIMEOUT']) as con:
+            cur = con.cursor()
+            
+            return render_template('task_add.html')
+        
+    except Exception as e:
+        message = f"Ошибка подключения: {e}"
+        return message
+            
+            
+'''
+
+	Содержание файла config.py
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config(object):
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'abcde'
+    DB_SERVER = os.environ.get('DB_SERVER') or 'localhost'
+    DB_USER = os.environ.get('DB_USER')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD')
+    DB_NAME = os.environ.get('DB_NAME')
+    DB_PORT = os.environ.get('DB_PORT')
+    DB_TIMEOUT = os.environ.get('DB_TIMEOUT')
+
+	Содержание файла __init__.py
+from flask import Flask
+from flask_bootstrap import Bootstrap5
+from flask_login import LoginManager
+from app.config import Config
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+bootstrap = Bootstrap5(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+from app import routes
+
+	Содержание файла user.py
+from flask_login import UserMixin
+
+class User(UserMixin):
+    def __init__(self, id, login, password, name):
+        self.id = id
+        self.login = login
+        self.name = name
+        self.password = password
+
+	Содержание файла forms.py
+from flask_wtf import FlaskForm
+from wtforms import BooleanField, StringField, DateField, IntegerField, PasswordField, SubmitField, SelectField, validators, ValidationError
+import email_validator
+
+class LoginForm(FlaskForm):
+    login = StringField('Логин', [validators.InputRequired()])
+    password = PasswordField('Пароль', [validators.InputRequired()])
+    remember_me = BooleanField('Запомнить меня')
+    submit = SubmitField('Войти')
+
+class RegistrationForm(FlaskForm):
+    names = []
+    logins = []
+    
+    nickname = StringField('Ник в системе', [validators.Length(min=4, max=32), validators.NoneOf( names, message='Пользователь с таким именем уже существует')])
+    system_role = SelectField('Доступ в системе', [validators.InputRequired()], id='select_system_role')
+    '''
+    secondname = StringField('Фамилия', [validators.Length(min=2, max=20)])
+    firstname = StringField('Имя', [validators.Length(min=2, max=20)])
+    surname = StringField('Отчество', [validators.Length(min=2, max=20)])
+    '''
+    email = StringField('E-mail', [validators.Length(min=6, max=64), validators.Email()])
+    login = StringField('Логин', [validators.Length(min=4, max=25), validators.NoneOf( logins, message='Пользователь с таким логином уже существует! Пожалуйста, выберите другой')])
+    password = PasswordField('Пароль', [validators.InputRequired(), 
+                                        validators.Length(min=6, max=64), 
+                                        validators.EqualTo('confirm', message='Пароли должны совпадать')])
+    confirm  = PasswordField('Повторите пароль')
+    submit = SubmitField('Создать новую учетную запись')
+
+class TaskAddForm(FlaskForm):
+    name = StringField('Название', [validators.Length(min=0, max=64)])
+    descr = StringField('Описание', [validators.Length(min=0,max=600)])
+    stage = SelectField('Этап выполнения', [validators.InputRequired()], id='select_stage')
+    priority = SelectField('Приоритет', [validators.InputRequired()], id='select_priority')
+    tasktype = StringField('Тип задачи', [validators.Length(min=0,max=32)])
+    taskfield = StringField('Вид работ', [validators.Length(min=0,max=32)])
+    user = SelectField('Ответственное лицо', [validators.InputRequired()], id='select_user')
+    
+    submit = SubmitField('Создать')
+
+class CommentForm(FlaskForm):
+    descr = StringField('Содержание', [validators.Length(min=0,max=600)])
+    submit = SubmitField('Отправить')
+    
+'''
+class EditUserForm(FlaskForm):
+    
+    submit = SubmitField('Сохранить')
+    
+class TaskEditForm(FlaskForm):
+    
+    submit = SubmitField('Сохранить')
+    
+class CommentEditForm(FlaskForm):
+    
+    submit = SubmitField('Сохранить')
+    
+class ProjectAddForm(FlaskForm):
+    submit = SubmitField('Создать')
+    
+class ProjectEditForm(FlaskForm):
+    
+    submit = SubmitField('Сохранить')
+'''
+
+	Содержание файла myproject.py
+from app import app
+
+# print(app.config['DB_SERVER'])
+
+import os
+# print( os.environ.get('SECRET_KEY'))
+# print( os.environ.get('DB_SERVER'))
+
+
+	Шаблоны страниц приложения
+	Содержание файла announce.html
+{% extends "base.html" %}
+
+{% block content %}
+
+{% endblock content %}
+
+	Содержание файла project.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            {% if access %}
+            <form id="newTaskForm" method="GET" action="{{ url_for('newtask', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                <input type="submit" value="Добавить задачу" onclick="newTaskForm.submit();"/> </br>
+            </form>
+            {% endif %}
+            
+            {% for stage_index in range( stages_length) %}
+                {% for task_index in range( tasks_n[stage_index]) %}
+                <form id="taskForm{{stage_index}}{{task_index}}" method="GET" action="{{ url_for('task', cur_user_id = cur_user_id, project_id = project[0], task_id = tasks[stage_index][task_index][0]) }}">
+                </form>
+                {% endfor %}
+            {% endfor %}
+            
+            <table class="taskTable">
+            <thead>
+                {% for stage in stages %}
+                <th>
+                    {{ stage[1] }}
+                </th>
+                {% endfor %}
+            </thead>
+            {% for task_index in range( tasks_maxlength) %}
+            <tr>
+                {% for stage_index in range( stages_length) %}
+                <td>
+                    {% if task_index < tasks_n[stage_index] %}
+                    <div class="content" onclick="taskForm{{stage_index}}{{task_index}}.submit();">
+                        {{ tasks[stage_index][task_index][1] }} </br></br>
+                        <div style="background-color:{{ tasks[stage_index][task_index][8] }}; color:black">
+                        {{ tasks[stage_index][task_index][7] }}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="blank">
+                    </div>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            <table>
+        </div>
+{% endblock innercontent %}
+
+	Содержание файла project_base.html
+{% extends "base.html" %}
+
+{% block content %}
+        <div>
+            <div style="margin-top: 10%;"></div>
+
+            <label style = "padding: 15px; background-color: rgb(243 217 194)"> <b>Проект "{{ project[1] }}" </b> </label> </br> </br>
+            <ul>
+                <form id="projectForm" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
+                    <li onclick="projectForm.submit();">
+                        {% if project_page == 1 %}
+                            <a class="active">Доска задач</a>
+                        {% else %}
+                            <a>Доска задач</a>
+                        {% endif %}
+                    </li>
+                </form>
+
+                <form id="analiseForm" method="GET" action="{{ url_for('project_analise', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                    <li onclick="analiseForm.submit();">
+                        {% if project_page == 2 %}
+                            <a class="active">Аналитика</a>
+                        {% else %}
+                            <a>Аналитика</a>
+                        {% endif %}
+                    </li>
+                </form>
+
+                <form id="descrForm" method="GET" action="{{ url_for('project_descr', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                    <li onclick="descrForm.submit();">                    
+                        {% if project_page == 3 %}
+                            <a class="active">О проекте</a>
+                        {% else %}
+                            <a>Описание</a>
+                        {% endif %}
+                    </li>
+                </form>
+            </ul>
+
+            <div style="margin-bottom: 20px;"></div>
+        </div>
+        
+        {% block innercontent %}
+        {% endblock innercontent %}
+{% endblock content %}
+
+	Содержание файла comment_edit.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            <h2>{{ title }}</h2>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div>Дата отправки: {{ postdate }}</div>
+                <div>{{ form.descr.label }} {{ form.descr() }}</div>
+                
+                <div></br></br></div>
+                {{ form.submit() }}
+            </form>
+        </div>
+{% endblock innercontent %}
+
+	Содержание файла task.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 800px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            </br> <b>Задача "{{ task[2] }}" </b> </br> </br> 
+            {% if edit_access %}
+            <div> 
+                <form id="editTaskForm" method="GET" action="{{ url_for('task_edit', cur_user_id = cur_user_id, project_id = project[0], task_id = task[0]) }}">
+                    <input type="submit" onclick="removeTaskForm.submit();" value="Редактировать"/> 
+                </form>
+            </div>
+            {% endif %}
+            {% if remove_access %}
+            <div> 
+                <form id="removeTaskForm" method="GET" action="{{ url_for('task_remove', cur_user_id = cur_user_id, project_id = project[0], task_id = task[0]) }}">
+                    <input type="submit" onclick="removeTaskForm.submit();" value="Удалить"/> 
+                </form>
+            </div>
+            {% endif %}
+            
+            <table>
+                <tr>
+                    <th style="text-align:left"> Этап: </th>
+                    <td style="text-align:left"> {{ task[6] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Приоритет: </th>
+                    <td style="text-align:left"> {{ task[7] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Тип задачи: </th>
+                    <td style="text-align:left"> {{ task[8] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Вид работы: </th>
+                    <td style="text-align:left"> {{ task[9] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Ответственное лицо: </th>
+                    {% if task[10] == None %}
+                    <td style="text-align:left"> {{ task[10] }} </td>
+                    {% else %}
+                    <td style="text-align:left"> {{ user_name[0] }} </td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Дата начала работ: </th>
+                    <td style="text-align:left"> {{ task[4] }} </td>
+                </tr>
+                <tr>
+                    <th style="text-align:left"> Дата окончания работ: </th>
+                    <td style="text-align:left"> {{ task[5] }} </td>
+                </tr>
+            </table>
+            
+            <b>Описание: </b></br> {{ task[3] }} </br> </br>
+            
+            {% for comment in comments %}
+            <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = comment[4]) }}">
+            </form>
+            <form id="editCommentForm{{loop.index}}" method="GET" action="{{ url_for('comment_edit', cur_user_id = cur_user_id, project_id=project[0], task_id=task[0], comment_id=comment[0]) }}">
+            </form>
+            <form id="removeCommentForm{{loop.index}}" method="POST" action="{{ url_for('comment_remove', cur_user_id = cur_user_id, project_id=project[0],  task_id=task[0], comment_id=comment[0]) }}">
+            </form>
+            {% endfor %}
+            
+            <b>Комментарии: </b> </br>
+            <table>
+                <thead>
+                    <th style = "width:100px">Дата</th>
+                    <th>Ник</th>
+                    <th>Содержание</th>
+                </thead>
+                {% for comment in comments %}
+                <tr>
+                    <td style="border-top: 2px solid black">{{ comment[1] }}</td>
+                    <td style="border-top: 2px solid black; display:block" onclick="userProfileForm{{loop.index}}.submit();">{{ comment[2] }}</td>
+                    <td style="border-top: 2px solid black">{{ comment[3] }}</br></br> </td>
+                    {% if comment_access and comment[4] == cur_user_id %}
+                    <td style="border-top: 2px solid black"> <input type="submit" value="Редактировать" onclick="editCommentForm{{loop.index}}.submit();"/> </br> </td>
+                    <td style="border-top: 2px solid black"> <input type="submit" value="Удалить" onclick="removeCommentForm{{loop.index}}.submit();"/> </br> </td>
+                    {% else %}
+                    <td style="border-top: 2px solid black"></td>
+                    <td style="border-top: 2px solid black"></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+            
+            </br>
+            {% if comment_access %}
+            <form id="newCommentForm" method="GET" action="{{ url_for('newcomment', cur_user_id = cur_user_id, project_id=project[0], task_id=task[0]) }}">
+                <input type="submit" value="Добавить комментарий" onclick="newCommentForm.submit();"/> </br>
+            </form>
+            {% endif %}
+            
+            </br>
+        </div>
+{% endblock innercontent %}
+
+	Содержание файла welcome.html
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="padding: 1%; width: 40%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+        <div style="margin-top: 10%;"></div>
+
+        <label> 
+            <h2>{{ title }}</h2>
+        </label>
+        </br>
+        
+        {% if current_user.is_authenticated %}
+            <p>Добро пожаловать, {{ current_user.name }}!</p>
+        {% else %}
+            <p>Вы не вошли в систему.</p>
+        {% endif %}
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            
+            {% if form.login.errors %}
+                {% for error in form.login.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.login.label }} {{ form.login(class="form-control form-control-lg") }}</div>
+            
+            <div>{{ form.password.label }} {{ form.password() }}</div>
+            {{ form.submit() }}
+        </form>
+        
+        </br>
+
+        <div style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)">
+            <b>Внимание! </br> Доступ к системе разрешен только зарегистрированным пользователям! </b> </br>
+            Чтобы зарегистрироваться в системе, пожалуйста, обратитесь к администратору
+        </div>
+
+        <div style="margin-bottom: 10%;"></div>
+    </div>
+{% endblock content %}
+
+	Содержание файла project_exit.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла project_user_edit.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла base.html
+<!DOCTYPE html>
+<html lang='ru'>
+
+<head>
+    <meta charset='utf-8' />
+    <title> TaskManager </title>
+    <style>
+        #upperbar {
+            position: fixed;
+            width: 100%;
+            height: 15%;
+            top: 0px;
+            left: 0px;
+            z-index: 2;
+            background:rgb(156 158 221);
+        }
+        #lowerbar {
+            position: fixed;
+            width: 100%;
+            height: 15%;
+            bottom: 0px;
+            left: 0px;
+            z-index: 2;
+            background:rgb(156 158 221);
+        }
+        
+        table.taskTable {
+            width: 90%;
+        }
+        
+        table.taskTable td {
+            width: 18%;
+            position: relative;
+        }
+        
+        table.taskTable .content {
+            aspect-ratio: 1 / 1 ;
+            background: gold;
+            padding: 3px;
+        }
+        
+        table.taskTable .blank {
+            aspect-ratio: 1 / 1 ;
+            padding: 3px;
+        }
+
+        table.taskTable th {
+            background-color: green;
+            color: white;
+        }
+
+        h3 {
+            color: rgb(28, 0, 139);
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: rgb(216, 234, 255);
+        }
+        
+        li {
+            float: left;
+        }
+        
+        li a {
+            display: block;
+            color: rgb(28, 0, 139);
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        
+        li a:hover:not(.active) {
+            color: rgb(216, 234, 255);
+            background-color: rgb(28, 0, 139);
+        }
+        
+        .active {
+            color: rgb(255, 255, 255);
+            background-color: rgb(58, 125, 202);
+        }
+
+        body {
+            font-size: 100%;
+            font-family: verdana, sans-serif;
+            background: rgb(255 255 255);
+            color: rgb(28, 0, 139);
+            background-image: url({{ url_for('static', filename='background.jpg') }});
+            background-repeat: repeat-x;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: auto 70%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="upperbar"> 
+        <h3>  {{ page_header }}  </h3>
+
+        {% if home_view %}
+        <ul>
+            <form id="homeForm" method="GET" action="{{ url_for('home', cur_user_id = cur_user_id) }}">
+                <li onclick="homeForm.submit();">
+                    {% if home_page == 1 %}
+                        <a class="active">Домашняя страница</a>
+                    {% else %}
+                        <a>Домашняя страница</a>
+                    {% endif %}
+                </li>
+            </form>
+
+            <form id="announceForm" method="GET" action="{{ url_for('announce', cur_user_id = cur_user_id) }}">
+                <li onclick="announceForm.submit();">
+                    {% if home_page == 2 %}
+                        <a class="active">Обьявления</a>
+                    {% else %}
+                        <a>Обьявления</a>
+                    {% endif %}
+                </li>
+            </form>
+
+            <form id="profileForm" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = cur_user_id) }}">
+                <li onclick="profileForm.submit();">                    
+                    {% if home_page == 3 %}
+                        <a class="active">Профиль</a>
+                    {% else %}
+                        <a>Профиль</a>
+                    {% endif %}
+                </li>
+            </form>
+
+            <form id="exitForm" method="GET" action="{{ url_for('logout') }}">
+                <li onclick="exitForm.submit();" style="float:right">
+                    {% if home_page == 4 %}
+                        <a class="active">Выйти из системы</a>
+                    {% else %}
+                        <a>Выйти из системы</a>
+                    {% endif %}
+                </li>
+            </form>
+        </ul>
+        {% endif %}
+    </div>
+
+    <div>
+        <div style="margin-top: 10%;"></div>
+        
+        {% block content %}
+        {% endblock content %}
+        
+        <div style="margin-bottom: 15%;"></div>
+    </div>
+
+    <div id="lowerbar"> 
+        <div id="rectangle"></div>
+        <h3> Студент ГУАП группы 4143 Снурников Я.Д.</h3>
+    </div>
+</body>
+
+</html>
+
+	Содержание файла profile.html
+{% extends "base.html" %}
+
+{% block content %}
+    <div>
+        <div style="margin-top: 10%;"></div>
+
+        <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            {{ user[0] }} системы</br>
+            <b>Никнейм: </b> {{ user[1] }}</br>
+            <b>Фамилия: </b> {{ user[2] }}</br>
+            <b>Имя: </b> {{ user[3] }}</br>
+            <b>Отчество: </b> {{ user[4] }}</br>
+            <b>Почта: </b> {{ user[5] }}</br>
+            <b>Телефон: </b> {{ user[6] }}</br>
+            <b>Кратко о себе: </b> </br> {{ user[7] }}</br>
+        </div>
+
+        {% if access %}
+        <input type="submit" value="Редактировать"/>
+        {% endif %}
+
+        <div style="margin-bottom: 10%;"></div>
+    </div>
+{% endblock content %}
+
+	Содержание файла project_descr.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            <b>Описание: </b> </br> {{ project[2] }}</br>
+            
+            {% if access %}
+            </br>
+            <input type="submit" value="Редактировать название и описание"/> </br>
+            {% endif %}
+            </br>
+            
+            {% for user in team %}
+            <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = user[0]) }}">
+            </form>
+            {% if access %}
+            <form id="editUserForm{{loop.index}}" method="GET" action="{{ url_for('project_user_edit', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
+            </form>
+            <form id="removeUserForm{{loop.index}}" method="GET" action="{{ url_for('project_user_remove', cur_user_id = cur_user_id, project_id = project[0], user_id = user[0]) }}">
+            </form>
+            {% endif %}
+            {% endfor %}
+            
+            {% if participent %}
+            <form id="exitForm" method="GET" action="{{ url_for('project_exit', cur_user_id = cur_user_id, project_id = project[0]) }}">
+            </form>
+            {% endif %}
+            
+            
+            </br>
+            {% if access %}
+            <div> 
+                <form id="addUserForm" method="GET" action="{{ url_for('project_user_add', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                    <input type="submit" onclick="addUserForm.submit();" value="Добавить участника"/> 
+                </form>
+            </div>
+            </br>
+            {% endif %}
+            
+            <b>Команда проекта: </b> </br>
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Ник</th>
+                    <th>Роль</th>
+                    <th>Должность</th>
+                </thead>
+                {% for user in team %}
+                <tr>
+                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ loop.index }}</td>
+                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[1] }}</td>
+                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[2] }}</td>
+                    <td onclick="userProfileForm{{loop.index}}.submit();">{{ user[3] }}</td>
+                    {% if access %}
+                    <td> <input type="submit" onclick="editUserForm{{loop.index}}.submit();" value="Редактировать"/> </td>
+                        {% if user[0] != cur_user_id %}
+                        <td> <input type="submit" onclick="removeUserForm{{loop.index}}.submit();" value="Удалить участника"/> </td>
+                        {% endif %}
+                    {% endif %}
+                    {% if participent and user[0] == cur_user_id %}
+                    <td> <input type="submit" onclick="exitForm.submit();" value="Выйти из проекта"/> </td>
+                    {% endif %}
+                    
+                </tr>
+                
+                {% endfor %}
+            </table>
+        </div>
+        <!-- 
+            <b>Количество человек: </b> {{ project[2] }}</br>
+            <b>Количество задач: </b> {{ project[2] }}</br> 
+        -->
+{% endblock innercontent %}
+
+	Содержание файла enter_admin.html
+{% extends "base.html" %}
+
+{% block content %}
+    <div>
+        <div style="margin-top: 10%;"></div>
+ 
+        <label style="padding: 1%; width: 40%; color:rgb(28, 0, 139);background-color: rgb(243 217 194)"> 
+            Введитие логин и пароль для входа в вашую учетную запись 
+        </label>
+        
+        <div style="margin-left: 2%; margin-top: 2%; color:rgb(255, 255, 255);">
+            <label for="login" style="margin-top: 2%; ">Логин:</label>
+            <div>
+                <input type="text" id="login" name="login" />
+            </div>
+            <label for="pass" style="margin-top: 2%; color:rgb(255, 255, 255);">Пароль:</label>
+            <div>
+                <input type="password" id="pass" name="password" required />
+            </div>
+
+            <div style="margin-top: 1%"> <input type="submit" value="Войти"/> </div>
+            <div> 
+                <form id="welcomeForm" method="GET" action="{{ url_for('welcome') }}">
+                    <input type="submit" onclick="welcomeForm.submit();" value="Вернуться на главную"/> 
+                </form>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 10%;"></div>
+    </div>
+{% endblock content %}
+
+	Содержание файла announce_add.html
+{% extends "base.html" %}
+
+{% block content %}
+
+{% endblock content %}
+
+	Содержание файла project_analise.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла project_user_add.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла registration.html
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+        <h2>{{ title }}</h2>
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            
+            {% if form.nickname.errors %}
+                {% for error in form.nickname.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.nickname.label }} {{ form.nickname(class="form-control form-control-lg") }}</div>
+            
+            {% if form.system_role.errors %}
+                {% for error in form.system_role.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.system_role.label }} {{ form.system_role(class="form-control form-control-lg") }}</div>
+            
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.email.label }} {{ form.email(class="form-control form-control-lg", placeholder="[email protected]") }}</div>
+            
+            <div></br></div>
+            
+            {% if form.login.errors %}
+                {% for error in form.login.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <div>{{ form.login.label }} {{ form.login(class="form-control form-control-lg") }}</div>
+            
+            <div>{{ form.password.label }} {{ form.password() }}</div>
+            <div>{{ form.confirm.label }} {{ form.confirm() }}</div>
+            {{ form.submit() }}
+        </form>
+    </div>
+{% endblock %}
+
+	Содержание файла home.html
+{% extends "base.html" %}
+
+{% block content %}
+        <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            {% if system_role_id == system_role_admin_id%}
+            <label> Список администраторов системы </label>
+            
+            {% for admin in admins %}
+            <form id="adminProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = admin[0]) }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Ник</th>
+                </thead>
+                {% for admin in admins %}
+                <tr onclick="adminProfileForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a>
+                            {{ admin[1] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            </br>
+            
+            </br>
+            <label> Список пользователей системы </label>
+            
+            {% for user in users %}
+            <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = user[0]) }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Ник</th>
+                </thead>
+                {% for user in users %}
+                <tr onclick="userProfileForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a>
+                            {{ user[1] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            </br>
+            
+            </br>
+            <label> Список проектов </label>
+            
+            {% for project in projects %}
+            <form id="projectForm{{loop.index}}" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Название</th>
+                </thead>
+                {% for project in projects %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a style = "display: block" onclick="projectForm{{loop.index}}.submit();">
+                            {{ project[1] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            </br>
+            <label> Список проектов </label>
+            
+            {% for project in projects %}
+            <form id="projectForm{{loop.index}}" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Название</th>
+                    <th>Роль в проекте</th>
+                    <th>Должность в проекте</th>
+                </thead>
+                {% for project in projects %}
+                <tr onclick="projectForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a style = "display: block">
+                            {{ project[1] }}
+                        </a>
+                    </td>
+                    <td>
+                        <a style = "display: block">
+                            {{ project[2] }}
+                        </a>
+                    </td>
+                    <td>
+                        <a style = "display: block">
+                            {{ project[3] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+
+            
+            </br>
+        </div>
+{% endblock content %}
+
+	Содержание файла task_edit.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла project_user_remove.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла task_remove.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+
+{% endblock innercontent %}
+
+	Содержание файла newcomment.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            <h2>{{ title }}</h2>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div>Сегодняшняя дата: {{ current_date }}</div>
+                <div>{{ form.descr.label }} {{ form.descr() }}</div>
+                
+                <div></br></br></div>
+                {{ form.submit() }}
+            </form>
+        </div>
+{% endblock innercontent %}
+
+	Содержание файла newtask.html
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            <h2>{{ title }}</h2>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div>{{ form.name.label }} {{ form.name() }}</div>
+                
+                <div>{{ form.stage.label }} {{ form.stage }}</div>
+                <div>{{ form.priority.label }} {{ form.priority }}</div>
+                <div>{{ form.user.label }} {{ form.user }}</div>
+                
+                <div>{{ form.tasktype.label }} {{ form.tasktype }}</div>
+                <div>{{ form.taskfield.label }} {{ form.taskfield() }}</div>
+                <div>{{ form.descr.label }} {{ form.descr() }}</div>
+                
+                <div></br></br></div>
+                
+                {{ form.submit() }}
+            </form>
+        </div>
+{% endblock innercontent %}
+

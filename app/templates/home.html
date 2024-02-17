@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <div style="margin: 0; padding: 0; width: 600px; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            {% if system_role_id == system_role_admin_id%}
+            <label> Список администраторов системы </label>
+            
+            {% for admin in admins %}
+            <form id="adminProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = admin[0]) }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Ник</th>
+                </thead>
+                {% for admin in admins %}
+                <tr onclick="adminProfileForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a>
+                            {{ admin[1] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            </br>
+            
+            </br>
+            <label> Список пользователей системы </label>
+            
+            {% for user in users %}
+            <form id="userProfileForm{{loop.index}}" method="GET" action="{{ url_for('profile', cur_user_id = cur_user_id, user_id = user[0]) }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Ник</th>
+                </thead>
+                {% for user in users %}
+                <tr onclick="userProfileForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a>
+                            {{ user[1] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            </br>
+            
+            </br>
+            <label> Список проектов </label>
+            
+            {% for project in projects %}
+            <form id="projectForm{{loop.index}}" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Название</th>
+                </thead>
+                {% for project in projects %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a style = "display: block" onclick="projectForm{{loop.index}}.submit();">
+                            {{ project[1] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            </br>
+            <label> Список проектов </label>
+            
+            {% for project in projects %}
+            <form id="projectForm{{loop.index}}" method="GET" action="{{ url_for('project', cur_user_id = cur_user_id, project_id = project[0], sort_type = 'all', sort_way = 'none') }}">
+            </form>
+            {% endfor %}
+            
+            <table>
+                <thead>
+                    <th>№</th>
+                    <th>Название</th>
+                    <th>Роль в проекте</th>
+                    <th>Должность в проекте</th>
+                </thead>
+                {% for project in projects %}
+                <tr onclick="projectForm{{loop.index}}.submit();">
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a style = "display: block">
+                            {{ project[1] }}
+                        </a>
+                    </td>
+                    <td>
+                        <a style = "display: block">
+                            {{ project[2] }}
+                        </a>
+                    </td>
+                    <td>
+                        <a style = "display: block">
+                            {{ project[3] }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+
+            
+            </br>
+        </div>
+{% endblock content %}

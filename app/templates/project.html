@@ -1,0 +1,47 @@
+{% extends "project_base.html" %}
+
+{% block innercontent %}
+        <div style="margin: 0; padding: 0; width: 50%; color:rgb(28, 0, 139); background-color: rgb(243 217 194)">
+            {% if access %}
+            <form id="newTaskForm" method="GET" action="{{ url_for('newtask', cur_user_id = cur_user_id, project_id = project[0]) }}">
+                <input type="submit" value="Добавить задачу" onclick="newTaskForm.submit();"/> </br>
+            </form>
+            {% endif %}
+            
+            {% for stage_index in range( stages_length) %}
+                {% for task_index in range( tasks_n[stage_index]) %}
+                <form id="taskForm{{stage_index}}{{task_index}}" method="GET" action="{{ url_for('task', cur_user_id = cur_user_id, project_id = project[0], task_id = tasks[stage_index][task_index][0]) }}">
+                </form>
+                {% endfor %}
+            {% endfor %}
+            
+            <table class="taskTable">
+            <thead>
+                {% for stage in stages %}
+                <th>
+                    {{ stage[1] }}
+                </th>
+                {% endfor %}
+            </thead>
+            {% for task_index in range( tasks_maxlength) %}
+            <tr>
+                {% for stage_index in range( stages_length) %}
+                <td>
+                    {% if task_index < tasks_n[stage_index] %}
+                    <div class="content" onclick="taskForm{{stage_index}}{{task_index}}.submit();">
+                        {{ tasks[stage_index][task_index][1] }} </br></br>
+                        <div style="background-color:{{ tasks[stage_index][task_index][8] }}; color:black">
+                        {{ tasks[stage_index][task_index][7] }}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="blank">
+                    </div>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            <table>
+        </div>
+{% endblock innercontent %}
